@@ -17,16 +17,6 @@ GMAIL_WAIT_TIME = 5
 GMAIL_INBOX_TIME = 10
 GMAIL_EMAIL_TIME = 5
 
-if len(sys.argv) == 1:
-    print("generating tex file...")
-    tex = ""
-    for name in ["SCROLL_PIX", "SCROLL_SLEEP", "EVAL_SLEEP", "GMAIL_WAIT_TIME", "GMAIL_INBOX_TIME", "GMAIL_EMAIL_TIME"]:
-        tex += tex_def("SingleEval" + name.replace('_', ''), f"{tex_fmt(eval(name))}")
-    paper.pull()
-    with open(f"../membalancer-paper/single_eval.tex", "w") as tex_file:
-        tex_file.write(tex)
-    paper.push()
-    sys.exit(0)
 
 assert(len(sys.argv) == 3)
 cfg = eval(sys.argv[1])["CFG"]
@@ -51,13 +41,6 @@ if RESIZE_STRATEGY == "gradient":
 BALANCE_FREQUENCY = BALANCER_CFG["BALANCE_FREQUENCY"]
 
 TYPE = cfg["TYPE"]
-
-wait_until = "networkidle2"
-wait_until = "domcontentloaded"
-
-def hang():
-    while True:
-        pass
 
 MB_IN_BYTES = 1024 * 1024
 
@@ -95,169 +78,6 @@ def run_acdc(v8_env_vars):
     else:
         j["OK"] = False
         j["ERROR"] = main_process_result.stdout
-    with open(os.path.join(result_directory, "score"), "w") as f:
-        json.dump(j, f)
-
-def run_browser(v8_env_vars):
-    async def new_page(browser):
-            page = await browser.newPage()
-            await page.setViewport({"width": 1280, "height": 1080})
-            await (await browser.pages())[0].bringToFront()
-            return page
-    bench = {}
-
-    async def reddit(browser, duration):
-        start = time.time()
-        page = await new_page(browser)
-        await page.goto("https://reddit.com", timeout=duration*1000, waitUntil=wait_until)
-        await page.waitForSelector("i.icon-comment")
-        i = 0
-        while time.time() - start < duration:
-            l = await page.querySelectorAll("i.icon-comment")
-            assert i < len(l)
-            await page.evaluate("(element) => element.scrollIntoView()", l[i])
-            await asyncio.sleep(5)
-            link = await page.evaluate("(element) => element.parentElement.href", l[i])
-            sub_page = await new_page(browser)
-            await sub_page.goto(link, timeout=15*1000, waitUntil=wait_until)
-            await asyncio.sleep(10)
-            await sub_page.close()
-            await asyncio.sleep(5)
-            i += 1
-    bench["reddit"] = reddit
-
-    async def scroll_website(browser, duration, website):
-        start = time.time()
-        page = await new_page(browser)
-        await page.goto(website, timeout=duration*1000, waitUntil=wait_until)
-        await asyncio.sleep(5)
-        while time.time() - start < duration:
-            await page.evaluate(f"{{window.scrollBy(0, {SCROLL_PIX});}}")
-            await asyncio.sleep(SCROLL_SLEEP)
-
-    async def twitter(browser, duration):
-        await scroll_website(browser, duration, "https://www.twitter.com")
-    bench["twitter"] = twitter
-
-    async def cnn(browser, duration):
-        await scroll_website(browser, duration, "https://www.cnn.com/")
-    bench["cnn"] = cnn
-
-    async def gmail(browser, duration):
-        start = time.time()
-        page = await new_page(browser)
-        # cannot use domcontentloaded as that is too quick
-        await page.goto("https://www.gmail.com", timeout=duration*1000)
-        await asyncio.sleep(GMAIL_WAIT_TIME)
-        i = 0
-        while time.time() - start < duration:
-            await page.evaluate(f'document.querySelectorAll(".zA")[{i}].click()')
-            await asyncio.sleep(GMAIL_EMAIL_TIME)
-            await page.evaluate('document.querySelector(".TN.bzz.aHS-bnt").click()')
-            await asyncio.sleep(GMAIL_INBOX_TIME)
-            i += 1
-    bench["gmail"] = gmail
-
-    async def espn(browser, duration):
-        await scroll_website(browser, duration, "https://www.espn.com/")
-    bench["espn"] = espn
-
-    async def facebook(browser, duration):
-        start = time.time()
-        page = await new_page(browser)
-        await page.goto("https://www.facebook.com/", timeout=duration*1000, waitUntil=wait_until)
-        await asyncio.sleep(EVAL_SLEEP)
-        groups = (await page.xpath("//*[text() = 'Groups']"))[0]
-        await page.evaluate("(g) => g.click()", groups)
-        await asyncio.sleep(EVAL_SLEEP)
-        while time.time() - start < duration:
-            await page.evaluate(f"{{window.scrollBy(0, {SCROLL_PIX});}}")
-            await asyncio.sleep(SCROLL_SLEEP)
-    bench["facebook"] = facebook
-
-    # problem - doesnt seems to load as it scroll continuously
-    async def foxnews(browser, duration):
-        await scroll_website(browser, duration, "https://www.foxnews.com/")
-    bench["foxnews"] = foxnews
-
-    async def yahoo(browser, duration):
-        start = time.time()
-        page = await new_page(browser)
-        await page.goto("https://www.news.yahoo.com/", timeout=duration*1000, waitUntil=wait_until)
-        await asyncio.sleep(1)
-        while time.time() - start < duration:
-            await page.evaluate("{window.scrollBy(0, 50);}")
-            await asyncio.sleep(1)
-    bench["yahoo"] = yahoo
-
-    async def medium(browser, duration):
-        start = time.time()
-        page = await new_page(browser)
-        await page.goto("https://www.medium.com/", timeout=duration*1000, waitUntil=wait_until)
-        await asyncio.sleep(1)
-        while time.time() - start < duration:
-            await page.evaluate("{window.scrollBy(0, 50);}")
-            await asyncio.sleep(1)
-    bench["medium"] = medium
-
-    # problem - cannot watch twitch video
-    async def twitch(browser):
-        page = await new_page(browser)
-        await page.goto("https://www.twitch.com/")
-        await asyncio.sleep(100)
-
-    # problem - use too little memory
-    async def cookie_clicker(browser, duration):
-        start = time.time()
-        page = await new_page(browser)
-        await page.goto("https://orteil.dashnet.org/cookieclicker/", timeout=duration*1000)
-        while time.time() - start < duration:
-            bigCookie = await page.querySelector("#bigCookie")
-            items = await page.querySelectorAll(".product.unlocked.enabled")
-            upgrades = await page.querySelectorAll(".crate.upgrade")
-            notifications = await page.querySelectorAll(".note .close")
-            for clickable in [bigCookie] + items + upgrades + notifications:
-                await page.evaluate("(c) => c.click()", clickable)
-                await asyncio.sleep(1)
-
-    # problem - use too little memory
-    async def youtube(browser, duration):
-        page = await new_page(browser)
-        await page.goto("https://www.youtube.com/watch?v=dQw4w9WgXcQ", {'waitUntil' : wait_until})
-        await asyncio.sleep(100)
-
-    async def gmap(browser):
-        page = await new_page(browser)
-        await page.goto("https://www.google.com/maps", {'waitUntil' : wait_until})
-        await page.evaluate("""document.querySelector("#searchboxinput").value='subway'""")
-        await asyncio.sleep(2)
-        await page.evaluate("""document.querySelector("[aria-label=Directions]").click()""")
-        await asyncio.sleep(2)
-        await page.evaluate("""document.querySelector("#directions-searchbox-0 input").value='University of Utah'""")
-        await asyncio.sleep(2)
-        await page.evaluate("""document.querySelector("#directions-searchbox-0 input").click()""")
-        await asyncio.sleep(2)
-        await page.keyboard.press('Enter');
-        await asyncio.sleep(100)
-
-    def get_bench(bench_name):
-        return bench[bench_name]
-
-    async def run_browser_main():
-        b = await new_browser(env_vars=v8_env_vars, headless=True, debug=False)
-        d = 180
-        try:
-            await asyncio.wait_for(asyncio.gather(*[get_bench(bench)(b, d) for bench in BENCH]), timeout=d*2)
-        finally:
-            await b.close()
-
-    start = time.time()
-    asyncio.get_event_loop().run_until_complete(run_browser_main())
-    end = time.time()
-
-    j = {}
-    j["OK"] = True
-    j["TOTAL_TIME"] = end - start
     with open(os.path.join(result_directory, "score"), "w") as f:
         json.dump(j, f)
 

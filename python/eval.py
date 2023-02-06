@@ -32,10 +32,7 @@ tex += tex_def("WEBMaxC", f"{tex_fmt(max(browser_c_range))}\,\%/MB")
 tex += tex_def("ACDCMinC", f"{tex_fmt(min(acdc_c_range))}\,\%/MB")
 tex += tex_def("ACDCMaxC", f"{tex_fmt(max(acdc_c_range))}\,\%/MB")
 
-paper.pull()
-with open(f"../membalancer-paper/data/eval_param.tex", "w") as tex_file:
-    tex_file.write(tex)
-paper.push()
+
 
 if mode == "macro":
     exit()
@@ -140,7 +137,6 @@ if mode in ["acdc", "all"]:
     evaluation.append(QUOTE(eval_acdc))
 
 subprocess.run("make", shell=True)
-subprocess.run("autoninja -C out/Release/ chrome", shell=True, cwd="../chromium/src")
 
 def run(config, in_path):
     def make_path():
@@ -148,16 +144,6 @@ def run(config, in_path):
         path.mkdir()
         with open(path.joinpath("cfg"), "w") as f:
             f.write(str(config))
-        commit = {}
-        commit["chrome_v8"] = get_commit("../chromium/src/v8")
-        commit["v8"] = get_commit("../v8/src")
-        with open("v8_commit") as f:
-            lines = f.readlines()
-            assert len(lines) == 1
-            assert lines[0] == str(get_commit("../v8/src"))
-        commit["membalancer"] = get_commit("./")
-        with open(path.joinpath("commit"), "w") as f:
-            f.write(str(commit))
         return path
     if has_meta(config):
         path = make_path()
