@@ -42,7 +42,7 @@ fi
 cd $mem_balancer_dir
 
 if [ ! -d "$deps_par_dir/v8/src/out.gn" ]; then
-    cd v8/src/
+    cd $deps_par_dir/v8/src/
     tools/dev/v8gen.py x64.release.sample
     chmod 666 -R out.gn
 fi 
