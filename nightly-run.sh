@@ -19,11 +19,12 @@ fi
 export PATH="$PWD/../depot_tools:$PATH"
 # ./clean_log
 # ./clean_out
-# echo "** Pulling latest changes in MemoryBalancer and v8 **"
-# git submodule init
-# git submodule update
-# git submodule sync
-# echo "** pulling changes in MemoryBalancer"
+cd $mem_balancer_dir
+echo "** Pulling submodules **"
+git submodule init
+git submodule update
+git submodule sync
+echo "** pulling changes in MemoryBalancer"
 
 # cd $mem_balancer_dir
 # cd ../
