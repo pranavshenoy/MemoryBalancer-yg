@@ -6,6 +6,7 @@ set -x
 #cleanup
 mkdir -p log
 
+export PATH="/home/pranav/Python-2.7.7/python:$PATH"
 mem_balancer_dir=$PWD
 deps_par_dir="$mem_balancer_dir/../.."
 cd $mem_balancer_dir
