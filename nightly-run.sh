@@ -6,7 +6,7 @@ set -x
 #cleanup
 mkdir -p log
 
-export PATH="/home/pranav/Python-2.7.7/python:$PATH"
+
 mem_balancer_dir=$PWD
 deps_par_dir="$mem_balancer_dir/../.."
 cd $mem_balancer_dir
@@ -44,6 +44,8 @@ cd $mem_balancer_dir
 
 if [ ! -d "$deps_par_dir/v8/src/out.gn" ]; then
     cd $deps_par_dir/v8/src/
+    export PATH="/home/pranav/Python-2.7.7/python:$PATH"
+    echo "$(which python)"
     tools/dev/v8gen.py x64.release.sample
     chmod 666 -R out.gn
 fi 
