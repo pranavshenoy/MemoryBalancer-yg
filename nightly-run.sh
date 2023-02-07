@@ -16,7 +16,7 @@ cd $mem_balancer_dir
 # else
 #     echo "depot_tool exists"
 # fi
-# export PATH="$PWD/depot_tools:$PATH"
+export PATH="$PWD/depot_tools:$PATH"
 # # ./clean_log
 # # ./clean_out
 # cd $mem_balancer_dir
