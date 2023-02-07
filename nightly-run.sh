@@ -31,7 +31,7 @@ echo "V8 should be in $PWD"
 if [ ! -d  "$mem_balancer_dir/../v8" ]; then
     echo "** fetching changes in v8 **"
     cd ../
-    /usr/bash fetch.sh
+    /usr/bin/bash fetch.sh
 else 
     echo "v8 already present"
 fi
