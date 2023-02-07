@@ -33,7 +33,7 @@ cd $mem_balancer_dir
 echo "V8 should be in $PWD"
 if [ ! -d  "$deps_par_dir/v8" ]; then
     echo "** fetching changes in v8 **"
-    cd $deps_par_dir
+    cd $deps_par_dir/
     /usr/bin/bash "$mem_balancer_dir/fetch.sh"
 else 
     echo "v8 already present"
@@ -43,7 +43,7 @@ cd $mem_balancer_dir
 
 if [ ! -d  "$deps_par_dir/WebKit" ]; then
     echo "** pulling Webkit **"    
-    cd $deps_par_dir
+    cd $deps_par_dir/
     git clone git@github.com:WebKit/WebKit.git
 else 
     echo "webkit present"
