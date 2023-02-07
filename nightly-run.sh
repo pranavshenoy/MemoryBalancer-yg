@@ -9,9 +9,9 @@ mkdir -p log
 mem_balancer_dir=$PWD
 cd $mem_balancer_dir
 
-cd ../
-if [ ! -d  depot_tools ]; then 
+if [ ! -d  "$mem_balancer_dir/../depot_tools" ]; then 
     echo "Pulling depot_tools"
+    cd ../
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools
 else
     echo "depot_tool exists"
@@ -26,14 +26,15 @@ git submodule update
 git submodule sync
 
 cd $mem_balancer_dir
-cd ../
+
 echo "V8 should be in $PWD"
-if [ ! -d  v8 ]; then
+if [ ! -d  "$mem_balancer_dir/../v8" ]; then
     echo "** fetching changes in v8 **"
+    cd ../
     ./fetch.sh
 else 
     echo "v8 already present"
-
+fi
 # cd $mem_balancer_dir
 # cd ../
 # echo "** pulling Webkit if not present**"
