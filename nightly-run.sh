@@ -7,20 +7,19 @@ set -x
 mkdir -p log
 
 mem_balancer_dir=$PWD
-depot_tool_par_dir="$mem_balancer_dir/../.."
-v8_par_dir="$mem_balancer_dir/../.."
+deps_par_dir="$mem_balancer_dir/../.."
 cd $mem_balancer_dir
 
 
-if [ ! -d  "$depot_tool_par_dir/depot_tools" ]; then 
+if [ ! -d  "$deps_par_dir/depot_tools" ]; then 
     echo "Pulling depot_tools"
-    cd "$depot_tool_par_dir/"
+    cd "$deps_par_dir/"
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools
 else
     echo "depot_tool exists"
 fi
 cd $mem_balancer_dir
-export PATH="$depot_tool_par_dir/depot_tools:$PATH"
+export PATH="$deps_par_dir/depot_tools:$PATH"
 # # ./clean_log
 # # ./clean_out
 # cd $mem_balancer_dir
@@ -32,18 +31,23 @@ git submodule sync
 cd $mem_balancer_dir
 
 echo "V8 should be in $PWD"
-rm -rf $v8_par_dir/v8
-if [ ! -d  "$v8_par_dir/v8" ]; then
+if [ ! -d  "$deps_par_dir/v8" ]; then
     echo "** fetching changes in v8 **"
-    cd $v8_par_dir
+    cd $deps_par_dir
     /usr/bin/bash "$mem_balancer_dir/fetch.sh"
 else 
     echo "v8 already present"
 fi
 cd $mem_balancer_dir
-# cd ../
-# echo "** pulling Webkit if not present**"
-# if [ ! -d  WebKit ] && git clone git@github.com:WebKit/WebKit.git
+
+
+if [ ! -d  "$deps_par_dir/WebKit" ]; then
+    echo "** pulling Webkit **"    
+    cd $deps_par_dir
+    git clone git@github.com:WebKit/WebKit.git
+else 
+    echo "webkit present"
+fi
 
 # cd $mem_balancer_dir
 # cd ../v8/src
