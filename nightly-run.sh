@@ -7,17 +7,20 @@ set -x
 mkdir -p log
 
 mem_balancer_dir=$PWD
+depot_tool_par_dir="$mem_balancer_dir/../.."
+v8_par_dir="$mem_balancer_dir/../.."
 cd $mem_balancer_dir
 
-if [ ! -d  "$mem_balancer_dir/../depot_tools" ]; then 
+
+if [ ! -d  "$depot_tool_par_dir/depot_tools" ]; then 
     echo "Pulling depot_tools"
-    cd ../
+    cd "$depot_tool_par_dir/"
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools
 else
     echo "depot_tool exists"
 fi
 cd $mem_balancer_dir
-export PATH="$PWD/../depot_tools:$PATH"
+export PATH="$depot_tool_par_dir/depot_tools:$PATH"
 # # ./clean_log
 # # ./clean_out
 # cd $mem_balancer_dir
@@ -29,9 +32,10 @@ git submodule sync
 cd $mem_balancer_dir
 
 echo "V8 should be in $PWD"
-if [ ! -d  "$mem_balancer_dir/../v8" ]; then
+rm -rf $v8_par_dir/v8
+if [ ! -d  "$v8_par_dir/v8" ]; then
     echo "** fetching changes in v8 **"
-    cd ../
+    cd $v8_par_dir
     /usr/bin/bash "$mem_balancer_dir/fetch.sh"
 else 
     echo "v8 already present"
