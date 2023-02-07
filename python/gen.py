@@ -16,7 +16,7 @@ import subprocess
 import sys
 import anal_work
 import gen_tex_table
-import paper
+# import paper
 from util import tex_fmt, fmt, tex_def
 import util
 import parse_gc_log
@@ -27,7 +27,7 @@ from matplotlib.ticker import FormatStrFormatter
 from git_check import get_commit
 import argparse
 
-paper.pull()
+# paper.pull()
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--action", default="", help="what to do to the generated html")
@@ -64,17 +64,6 @@ path.mkdir(parents=True, exist_ok=True)
 
 tex = ""
 tex += f"% path: membalancer.uwplse.org/{pre_path}\n"
-
-commit = None
-for name in glob.glob('log/**/commit', recursive=True):
-    with open(name) as f:
-        if commit == None:
-            commit = eval(f.read())
-        else:
-            pass
-            #assert commit == eval(f.read())
-tex += tex_def("MBHash", commit["membalancer"])
-tex += tex_def("VEightHash", commit["v8"])
 
 png_counter = Counter()
 html_counter = Counter()
@@ -221,9 +210,6 @@ def calculate_extreme_improvement(directory, m):
         e = Experiment([Run(dirname)])
         max_speedup = max(max_speedup, (bl_time / e.total_major_gc_time()) - 1)
         max_saving = max(max_saving, 1 - (e.average_benchmark_memory() / bl_memory))
-    global tex
-    tex += tex_def("JSMaxSpeedup", f"{tex_fmt(max_speedup * 100)}\%")
-    tex += tex_def("JSMaxSaving", f"{tex_fmt(max_saving * 100)}\%")
 
 def gen_jetstream(directory):
     m = megaplot.anal_log(directory)
@@ -231,8 +217,6 @@ def gen_jetstream(directory):
     calculate_extreme_improvement(directory, m_exp)
     found_baseline = False
     found_compare = False
-    tex_table_baseline_dir = None
-    tex_table_membalancer_dir = None
     JSCompareAt = -2e-8
     for name in glob.glob(f'{directory}/**/score', recursive=True):
         dirname = os.path.dirname(name)
@@ -241,7 +225,6 @@ def gen_jetstream(directory):
         if cfg["CFG"]["BALANCER_CFG"]["BALANCE_STRATEGY"] == "ignore":
             if not found_baseline:
             	found_baseline = True
-            	tex_table_baseline_dir = dirname
             	anal_gc_log.main(cfg, Experiment([Run(dirname + "/")]), legend=False)
             	plt.xlim([0, 40])
             	plt.ylim([0, 450])
@@ -250,50 +233,17 @@ def gen_jetstream(directory):
         elif cfg["CFG"]["BALANCER_CFG"]["RESIZE_CFG"]["GC_RATE_D"] == JSCompareAt:
             if not found_compare:
                 found_compare = True
-                global tex
-                tex += tex_def("CompareAt", tex_fmt(JSCompareAt*-1e9))
-                tex_table_membalancer_dir = dirname
                 anal_gc_log.main(cfg, Experiment([Run(dirname + "/")]), legend=False)
                 plt.xlim([0, 40])
                 plt.ylim([0, 450])
                 plt.savefig(f"../membalancer-paper/img/js_membalancer_anal.png", bbox_inches='tight')
                 plt.clf()
-    gen_tex_table.main(tex_table_membalancer_dir, tex_table_baseline_dir)
-    parse_gc_log.main([tex_table_membalancer_dir], [tex_table_baseline_dir], "JS")
     return gen_eval("JETSTREAM", m_exp)
 
 def gen_acdc(directory):
     m = megaplot.anal_log(directory)
     m_exp = {benches: {cfg: [Experiment([x]) for x in aggregated_runs] for cfg, aggregated_runs in per_benches_m.items()} for benches, per_benches_m in m.items()}
     return gen_eval("ACDC", m_exp, normalize_baseline=False, reciprocal_regression=False)
-
-def gen_browser(directory, i):
-    m = megaplot.anal_log(dd)
-    def n_choose_k(n, k):
-        if k == 0:
-            return ((),)
-        elif len(n) == 0:
-            return ()
-        else:
-            return n_choose_k(n[1:], k) + tuple(x + (n[0],) for x in n_choose_k(n[1:], k-1))
-    def un_1_tuple(x):
-        assert len(x) == 1
-        return x[0]
-    all_bench = list([un_1_tuple(x) for x in m.keys()])
-    real_m = {}
-    for benches in n_choose_k(all_bench, i):
-        per_benches_m = {}
-        for bench in benches:
-            m_bench = m[(bench,)]
-            for cfg, runs in m_bench.items():
-                if cfg not in per_benches_m:
-                    per_benches_m[cfg] = [[x] for x in runs]
-                else:
-                    pbmcfg = per_benches_m[cfg]
-                    for j in range(min(len(pbmcfg), len(runs))):
-                        pbmcfg[j].append(runs[j])
-        real_m[benches] = {cfg: [Experiment(x) for x in aggregated_runs if len(x) == i] for cfg, aggregated_runs in per_benches_m.items()}
-    return gen_eval(f"WEB{i * 'I'}", real_m, anal_frac=(anal_work.main(directory) if i == 1 else None))
 
 with page(path=path.joinpath("index.html"), title='Main') as doc:
     d = list(Path("log/").iterdir())
@@ -309,12 +259,6 @@ with page(path=path.joinpath("index.html"), title='Main') as doc:
                     li(a("jetstream", href=gen_jetstream(dd)))
                 elif name == "acdc":
                     li(a("acdc", href=gen_acdc(dd)))
-                elif name in ["browseri", "browserii", "browseriii"]:
-                    m = megaplot.anal_log(dd)
-                    m_exp = {benches: {cfg: [Experiment([x]) for x in aggregated_runs] for cfg, aggregated_runs in per_benches_m.items()} for benches, per_benches_m in m.items()}
-                    li(a(name, href=gen_eval(name.upper(), m_exp)))
-                    #for i in [1, 2, 3]:
-                    #    li(a(f"browser_{i}", href=gen_browser(dd, i)))
                 else:
                     raise
     tex_file_name = "EVAL.tex.txt"
@@ -324,10 +268,10 @@ with page(path=path.joinpath("index.html"), title='Main') as doc:
 
 if action == "open":
     os.system(f"xdg-open {path.joinpath('index.html')}")
-elif action == "upload" or action == "paper":
-    with open(f"../membalancer-paper/data/EVAL.tex", "w") as tex_file:
-        tex += tex_def("GraphHash", get_commit("./"))
-        tex_file.write(tex)
-    os.system(f"scp -r -C {path} uwplse.org:/var/www/membalancer/")
-if action == "paper":
-    paper.push()
+# elif action == "upload" or action == "paper":
+#     with open(f"../membalancer-paper/data/EVAL.tex", "w") as tex_file:
+#         tex += tex_def("GraphHash", get_commit("./"))
+#         tex_file.write(tex)
+#     os.system(f"scp -r -C {path} uwplse.org:/var/www/membalancer/")
+# if action == "paper":
+#     paper.push()
