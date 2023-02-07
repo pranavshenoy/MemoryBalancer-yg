@@ -35,6 +35,9 @@ if [ ! -d  "$deps_par_dir/v8" ]; then
     echo "** fetching changes in v8 **"
     cd $deps_par_dir/
     /usr/bin/bash "$mem_balancer_dir/fetch.sh"
+    cd v8/src/
+    tools/dev/v8gen.py x64.release.sample
+    chmod 666 -R out.gn
 else 
     echo "v8 already present"
 fi
