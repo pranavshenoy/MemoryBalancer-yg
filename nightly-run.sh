@@ -16,7 +16,7 @@ if [ ! -d  depot_tools ]; then
 else
     echo "depot_tool exists"
 fi
-export PATH="$PWD/../depot_tools:$PATH"
+export PATH="$PWD/depot_tools:$PATH"
 # ./clean_log
 # ./clean_out
 cd $mem_balancer_dir
@@ -24,12 +24,15 @@ echo "** Pulling submodules **"
 git submodule init
 git submodule update
 git submodule sync
-echo "** pulling changes in MemoryBalancer"
 
-# cd $mem_balancer_dir
-# cd ../
-# echo "** pulling changes in v8 **"
-# if [ ! -d  v8 ] && ./fetch.sh
+cd $mem_balancer_dir
+cd ../
+echo "V8 should be in $PWD"
+if [ ! -d  v8 ]; then
+    echo "** fetching changes in v8 **"
+    ./fetch.sh
+else 
+    echo "v8 already present"
 
 # cd $mem_balancer_dir
 # cd ../
