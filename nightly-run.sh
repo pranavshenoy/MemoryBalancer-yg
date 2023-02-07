@@ -9,10 +9,13 @@ mkdir -p log
 mem_balancer_dir=$PWD
 cd $mem_balancer_dir
 
-echo "** pulling depot_tools if not present **"
 cd ../
-if [ ! -d  depot_tools ] && git clone https://chromium.googlesource.com/chromium/tools/depot_tools
-
+if [ ! -d  depot_tools ]; then 
+    echo "Pulling depot_tools"
+    git clone https://chromium.googlesource.com/chromium/tools/depot_tools
+else
+    echo "depot_tool exists"
+fi
 export PATH="$PWD/../depot_tools:$PATH"
 # ./clean_log
 # ./clean_out
