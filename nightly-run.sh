@@ -42,7 +42,7 @@ else
 fi
 cd $mem_balancer_dir
 
-sudo apt install generate-ninja
+# sudo apt install generate-ninja
 rm -rf "$deps_par_dir/v8/src/out.gn"
 if [ ! -d "$deps_par_dir/v8/src/out.gn" ]; then
     cd $deps_par_dir/v8/src/
