@@ -68,15 +68,9 @@ git checkout STABLE
 git pull origin STABLE
 gclient sync -f --no-history
 
-
-# # echo "** cloning membalancer-paper **"
-# # cd $mem_balancer_dir
-# # cd "../"
-# # [ ! -d "membalancer-paper" ] && git clone git@github.com:cputah/membalancer-paper.git
-
-# cd $mem_balancer_dir
-# echo "** building v8 **"
-# make v8
+cd $mem_balancer_dir
+echo "** building v8 **"
+make v8
 # echo "** building memorybalancer **"
 # make
 
