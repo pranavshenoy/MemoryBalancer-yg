@@ -68,7 +68,7 @@ cd $deps_par_dir/v8/src/
 git stash
 git checkout 2020-12-24
 git pull origin 2020-12-24
-gclient sync -f --no-history
+# gclient sync -f --no-history
 
 cd $mem_balancer_dir
 echo "** building v8 **"
