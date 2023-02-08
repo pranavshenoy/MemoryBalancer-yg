@@ -61,15 +61,17 @@ else
     echo "webkit present"
 fi
 
+sudo chmod -R 777 $deps_par_dir/v8
+sudo chown pranav $deps_par_dir/v8
 # cd $deps_par_dir/v8/src/
 # git stash
 # git checkout 2020-12-24
 # git pull origin 2020-12-24
 # gclient sync -f --no-history
 
-cd $mem_balancer_dir
-echo "** building v8 **"
-make v8
+# cd $mem_balancer_dir
+# echo "** building v8 **"
+# make v8
 # echo "** building memorybalancer **"
 # make
 
