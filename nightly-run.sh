@@ -36,7 +36,7 @@ if [ ! -d  "$deps_par_dir/v8" ]; then
     echo "** fetching changes in v8 **"
     cd $deps_par_dir/
     /usr/bin/bash "$mem_balancer_dir/fetch.sh"
-    
+    gclient sync
 else 
     echo "v8 already present"
 fi
@@ -49,7 +49,6 @@ cd $mem_balancer_dir
 #     export PATH="/home/pranav/Python-2.7.7/python:$PATH"
 #     echo $(which python)
 #     /home/pranav/Python-2.7.7/python tools/dev/v8gen.py x64.release.sample -vv
-#     chmod 666 -R out.gn/*
 # fi 
 
 
@@ -70,11 +69,12 @@ git checkout origin/2020-12-24
 git pull origin 2020-12-24
 # gclient sync -f --no-history
 
+pip install ninja
 cd $mem_balancer_dir
 echo "** building v8 **"
 make v8
-# echo "** building memorybalancer **"
-# make
+echo "** building memorybalancer **"
+make
 
 
 # # echo "** running eval **"
