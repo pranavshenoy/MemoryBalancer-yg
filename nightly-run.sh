@@ -42,12 +42,14 @@ else
 fi
 cd $mem_balancer_dir
 
+apt install generate-ninja
+rm -rf "$deps_par_dir/v8/src/out.gn"
 if [ ! -d "$deps_par_dir/v8/src/out.gn" ]; then
     cd $deps_par_dir/v8/src/
     export PATH="/home/pranav/Python-2.7.7/python:$PATH"
     echo $(which python)
     /home/pranav/Python-2.7.7/python tools/dev/v8gen.py x64.release.sample -vv
-    chmod 666 -R out.gn
+    chmod 666 -R out.gn/*
 fi 
 
 
