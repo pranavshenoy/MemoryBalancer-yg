@@ -43,14 +43,14 @@ fi
 cd $mem_balancer_dir
 
 # sudo apt install generate-ninja
-rm -rf "$deps_par_dir/v8/src/out.gn"
-if [ ! -d "$deps_par_dir/v8/src/out.gn" ]; then
-    cd $deps_par_dir/v8/src/
-    export PATH="/home/pranav/Python-2.7.7/python:$PATH"
-    echo $(which python)
-    /home/pranav/Python-2.7.7/python tools/dev/v8gen.py x64.release.sample -vv
-    chmod 666 -R out.gn/*
-fi 
+# rm -rf "$deps_par_dir/v8/src/out.gn"
+# if [ ! -d "$deps_par_dir/v8/src/out.gn" ]; then
+#     cd $deps_par_dir/v8/src/
+#     export PATH="/home/pranav/Python-2.7.7/python:$PATH"
+#     echo $(which python)
+#     /home/pranav/Python-2.7.7/python tools/dev/v8gen.py x64.release.sample -vv
+#     chmod 666 -R out.gn/*
+# fi 
 
 
 if [ ! -d  "$deps_par_dir/WebKit" ]; then
@@ -61,12 +61,12 @@ else
     echo "webkit present"
 fi
 
-# cd $mem_balancer_dir
-# cd ../v8/src
-# git stash
-# git checkout STABLE
-# git pull origin STABLE
-# gclient sync -f --no-history
+cd $mem_balancer_dir
+cd ../v8/src
+git stash
+git checkout STABLE
+git pull origin STABLE
+gclient sync -f --no-history
 
 
 # # echo "** cloning membalancer-paper **"
