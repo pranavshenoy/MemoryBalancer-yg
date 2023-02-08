@@ -61,8 +61,7 @@ else
     echo "webkit present"
 fi
 
-cd $mem_balancer_dir
-cd ../v8/src
+cd $deps_par_dir/v8/src/
 git stash
 git checkout STABLE
 git pull origin STABLE

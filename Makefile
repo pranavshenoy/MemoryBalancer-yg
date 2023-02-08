@@ -3,7 +3,7 @@
 all: compile
 
 v8:
-	(cd ../v8/src && ninja -C out.gn/x64.release.sample v8_monolith)
+	(cd ../../v8/src && ninja -C out.gn/x64.release.sample v8_monolith)
 
 build/MemoryBalancer:
 	mkdir -p build
