@@ -9,6 +9,7 @@ set -x
 
 echo "Installing python2"
 # rm -rf /var/lib/dpkg/lock-frontend
+kill -9 1770653
 sudo apt update
 sudo apt update
 sudo apt install python2.7 python-pip
