@@ -4,10 +4,10 @@ set -e
 set -x
 
 #cleanup
-mkdir -p log
+# mkdir -p log
 
 
-which python
+echo $(python -c 'import sys; print(sys.version_info[:])')
 
 # mem_balancer_dir=$PWD
 # deps_par_dir="$mem_balancer_dir/../.."
