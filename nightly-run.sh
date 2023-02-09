@@ -18,10 +18,10 @@ echo $(python -c 'import sys; print(sys.version_info[:])')
 mem_balancer_dir=$PWD
 deps_par_dir="$mem_balancer_dir/../.."
 cd $mem_balancer_dir
-mkdir /home/nightlies/Python-2.7.7
-sudo cp -R /home/pranav/Python-2.7.7/ /home/nightlies/Python-2.7.7/
-chmod -R 555 /home/nightlies/Python-2.7.7/
-export PATH="/home/nightlies/Python-2.7.7/python:$PATH"
+# mkdir /home/nightlies/Python-2.7.7
+# sudo cp -R /home/pranav/Python-2.7.7/ /home/nightlies/Python-2.7.7/
+# chmod -R 555 /home/nightlies/Python-2.7.7/
+export PATH="/home/nightlies/Python-2.7.7/Python-2.7.7/python:$PATH"
 
 python
 # if [ ! -d  "$deps_par_dir/depot_tools" ]; then 
