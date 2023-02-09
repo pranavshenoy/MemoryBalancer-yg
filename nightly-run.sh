@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# set -e
-# set -x
+set -e
+set -x
 
 #cleanup
 # mkdir -p log
@@ -22,6 +22,7 @@ cd $mem_balancer_dir
 # sudo cp -R /home/pranav/Python-2.7.7/ /home/nightlies/Python-2.7.7/
 # chmod -R 555 /home/nightlies/Python-2.7.7/
 export PATH="/home/nightlies/Python-2.7.7/Python-2.7.7/python:$PATH"
+echo "*************"
 echo "*************"
 which python
 # if [ ! -d  "$deps_par_dir/depot_tools" ]; then 
