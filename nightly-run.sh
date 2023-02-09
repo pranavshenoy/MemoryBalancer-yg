@@ -21,6 +21,7 @@ else
 fi
 cd $mem_balancer_dir
 export PATH="$deps_par_dir/depot_tools:$PATH"
+export PATH="/home/pranav/Python-2.7.7/python:$PATH"
 # # ./clean_log
 # # ./clean_out
 # cd $mem_balancer_dir
