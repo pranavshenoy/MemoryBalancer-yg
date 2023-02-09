@@ -24,7 +24,7 @@ cd $mem_balancer_dir
 export PATH="/home/nightlies/Python-2.7.7/Python-2.7.7/python:$PATH"
 echo "*************"
 echo "*************"
-which python
+python
 # if [ ! -d  "$deps_par_dir/depot_tools" ]; then 
 #     echo "Pulling depot_tools"
 #     cd "$deps_par_dir/"
