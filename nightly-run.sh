@@ -9,8 +9,9 @@ set -x
 
 echo "Installing python2"
 # rm -rf /var/lib/dpkg/lock-frontend
-# sudo apt update
-# sudo apt install python2
+sudo apt update
+sudo apt update
+sudo apt install python2.7 python-pip
 # echo "python version:"
 
 echo $(python -c 'import sys; print(sys.version_info[:])')
@@ -24,7 +25,7 @@ cd $mem_balancer_dir
 export PATH="/home/nightlies/Python-2.7.7/Python-2.7.7/python:$PATH"
 echo "*************"
 echo "*************"
-python
+/home/nightlies/Python-2.7.7/Python-2.7.7/python
 # if [ ! -d  "$deps_par_dir/depot_tools" ]; then 
 #     echo "Pulling depot_tools"
 #     cd "$deps_par_dir/"
