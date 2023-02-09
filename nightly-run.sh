@@ -7,6 +7,9 @@
 # mkdir -p log
 
 
+echo "Installing python2"
+sudo apt update
+sudo apt install python2
 echo "python version:"
 
 echo $(python -c 'import sys; print(sys.version_info[:])')
