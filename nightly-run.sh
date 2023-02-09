@@ -9,13 +9,13 @@ set -x
 
 echo "Installing python2"
 # rm -rf /var/lib/dpkg/lock-frontend
-kill -9 1770653
-sudo apt update
-sudo apt update
-sudo apt install python2.7 python-pip
+# kill -9 1770653
+# sudo apt update
+# sudo apt update
+# sudo apt install python2.7 python-pip
 # echo "python version:"
 
-echo $(python -c 'import sys; print(sys.version_info[:])')
+# echo $(python -c 'import sys; print(sys.version_info[:])')
 
 mem_balancer_dir=$PWD
 deps_par_dir="$mem_balancer_dir/../.."
@@ -27,6 +27,11 @@ export PATH="/home/nightlies/Python-2.7.7/Python-2.7.7/python:$PATH"
 echo "*************"
 echo "*************"
 /home/nightlies/Python-2.7.7/Python-2.7.7/python
+
+echo "Python version:"
+
+python --version 2>&1
+
 # if [ ! -d  "$deps_par_dir/depot_tools" ]; then 
 #     echo "Pulling depot_tools"
 #     cd "$deps_par_dir/"
