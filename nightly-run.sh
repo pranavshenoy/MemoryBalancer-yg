@@ -7,8 +7,8 @@ set -x
 mkdir -p log
 
 mem_balancer_dir=$PWD
-deps_par_dir="$mem_balancer_dir/../.."
-# deps_par_dir="$mem_balancer_dir/../"
+# deps_par_dir="$mem_balancer_dir/../.."
+deps_par_dir="$mem_balancer_dir/.."
 cd $mem_balancer_dir
 
 
@@ -46,10 +46,8 @@ fi
 cd $mem_balancer_dir
 
 # sudo apt install generate-ninja
-rm -rf "$deps_par_dir/v8/src/out.gn"
 if [ ! -d "$deps_par_dir/v8/src/out.gn" ]; then
     cd $deps_par_dir/v8/src/
-    echo $(which python)
     tools/dev/v8gen.py x64.release.sample -vv
 fi 
 
@@ -73,17 +71,17 @@ git pull origin 2020-12-24
 cd $mem_balancer_dir
 echo "** building v8 **"
 make v8
-# echo "** building memorybalancer **"
-# make
+echo "** building memorybalancer **"
+make
 
 
 
-# # # echo "** running eval **"
-# # # python3 python/eval.py "jetstream"
-# # # python3 python/eval.py "acdc"
-# # # python3 python/gen.py --action=open
-# # # echo "** uploading results **"
-# # # result_dir=`ls "out" | sort -r | head -1`
-# # # if command -v nightly-results &>/dev/null; then
-# # #     nightly-results url "http://membalancer.uwplse.org/$result_dir"
-# # # fi
+# echo "** running eval **"
+# python3 python/eval.py "jetstream"
+# python3 python/eval.py "acdc"
+# python3 python/gen.py --action=open
+# echo "** uploading results **"
+# result_dir=`ls "out" | sort -r | head -1`
+# if command -v nightly-results &>/dev/null; then
+#     nightly-results url "http://membalancer.uwplse.org/$result_dir"
+# fi

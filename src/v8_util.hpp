@@ -20,6 +20,10 @@ struct V8RAII {
   }
   ~V8RAII() {
     v8::V8::Dispose();
-    v8::V8::DisposePlatform();
+    /*
+    TODO: PRANAV: commented it due to compiler error
+    /home/pranav/v8-mb/MemoryBalancer/src/v8_util.hpp:23:13: error: ‘DisposePlatform’ is not a member of ‘v8::V8’
+    */
+    // v8::V8::DisposePlatform(); 
   }
 };
