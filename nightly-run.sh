@@ -73,6 +73,7 @@ gclient sync -f --no-history
 pip install ninja
 cd $mem_balancer_dir
 echo "** building v8 **"
+python -c 'import sys; print(sys.version_info[:])'
 make v8
 echo "** building memorybalancer **"
 make
