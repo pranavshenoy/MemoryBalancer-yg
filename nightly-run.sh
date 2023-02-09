@@ -25,8 +25,10 @@ cd $mem_balancer_dir
 # chmod -R 555 /home/nightlies/Python-2.7.7/
 export PATH="/home/nightlies/Python-2.7.7/Python-2.7.7/python:$PATH"
 echo "*************"
-echo "*************"
-/home/nightlies/Python-2.7.7/Python-2.7.7/python
+echo "New one"
+# /home/nightlies/Python-2.7.7/Python-2.7.7/python
+echo $PATH
+python
 
 echo "Python version:"
 
