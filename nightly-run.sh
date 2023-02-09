@@ -7,12 +7,11 @@ set -x
 mkdir -p log
 
 
-mem_balancer_dir=$PWD
-deps_par_dir="$mem_balancer_dir/../.."
-cd $mem_balancer_dir
+which python
 
-rm -rf $deps_par_dir/v8
-
+# mem_balancer_dir=$PWD
+# deps_par_dir="$mem_balancer_dir/../.."
+# cd $mem_balancer_dir
 
 # if [ ! -d  "$deps_par_dir/depot_tools" ]; then 
 #     echo "Pulling depot_tools"
@@ -21,9 +20,11 @@ rm -rf $deps_par_dir/v8
 # else
 #     echo "depot_tool exists"
 # fi
+
+
 # cd $mem_balancer_dir
 # export PATH="$deps_par_dir/depot_tools:$PATH"
-# export PATH="/home/pranav/Python-2.7.7/python:$PATH"
+# export PATH=":$PATH"
 # # # ./clean_log
 # # # ./clean_out
 # # cd $mem_balancer_dir
