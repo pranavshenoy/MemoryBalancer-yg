@@ -22,8 +22,8 @@ cd $mem_balancer_dir
 # sudo cp -R /home/pranav/Python-2.7.7/ /home/nightlies/Python-2.7.7/
 # chmod -R 555 /home/nightlies/Python-2.7.7/
 export PATH="/home/nightlies/Python-2.7.7/Python-2.7.7/python:$PATH"
-
-python
+echo "*************"
+which python
 # if [ ! -d  "$deps_par_dir/depot_tools" ]; then 
 #     echo "Pulling depot_tools"
 #     cd "$deps_par_dir/"
