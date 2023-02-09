@@ -64,11 +64,11 @@ cd $mem_balancer_dir
 # sudo chmod -R 777 $deps_par_dir/v8
 # sudo chown -R nightlies $deps_par_dir/v8
 
-# cd $deps_par_dir/v8/src/
-# git stash
-# git checkout origin/2020-12-24
-# git pull origin 2020-12-24
-# gclient sync -f --no-history
+cd $deps_par_dir/v8/src/
+git stash
+git checkout origin/2020-12-24
+git pull origin 2020-12-24
+gclient sync -f --no-history
 
 pip install ninja
 cd $mem_balancer_dir
