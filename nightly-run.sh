@@ -7,7 +7,7 @@ set -x
 mkdir -p log
 
 mem_balancer_dir=$PWD
-deps_par_dir="$mem_balancer_dir/../../"
+deps_par_dir="$mem_balancer_dir/../.."
 # deps_par_dir="$mem_balancer_dir/../"
 cd $mem_balancer_dir
 
