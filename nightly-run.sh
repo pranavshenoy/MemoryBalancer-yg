@@ -7,6 +7,8 @@ set -x
 # mkdir -p log
 
 
+echo "python version:"
+
 echo $(python -c 'import sys; print(sys.version_info[:])')
 
 # mem_balancer_dir=$PWD
