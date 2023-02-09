@@ -9,7 +9,7 @@
 
 echo "Installing python2"
 rm -rf /var/lib/dpkg/lock-frontend
-sudo apt update
+# sudo apt update
 sudo apt install python2
 echo "python version:"
 
