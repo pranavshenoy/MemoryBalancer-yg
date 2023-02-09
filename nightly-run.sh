@@ -4,102 +4,75 @@ set -e
 set -x
 
 #cleanup
-# mkdir -p log
-
-
-echo "Installing python2"
-# rm -rf /var/lib/dpkg/lock-frontend
-# kill -9 1770653
-# sudo apt update
-# sudo apt update
-# sudo apt install python2.7 python-pip
-# echo "python version:"
-
-# echo $(python -c 'import sys; print(sys.version_info[:])')
+mkdir -p log
 
 mem_balancer_dir=$PWD
-deps_par_dir="$mem_balancer_dir/../.."
+deps_par_dir="$mem_balancer_dir/../../"
+# deps_par_dir="$mem_balancer_dir/../"
 cd $mem_balancer_dir
-# mkdir /home/nightlies/Python-2.7.7
-# sudo cp -R /home/pranav/Python-2.7.7/ /home/nightlies/Python-2.7.7/
-# sudo chmod -R 555 /home/nightlies/Python-2.7.7/
-# sudo chown -R nightlies:nightlies /home/nightlies/Python-2.7.7/
-# export PATH="/home/nightlies/Python-2.7.7/Python-2.7.7/python:$PATH"
-# echo "*************"
-# echo "New one"
-# /home/nightlies/Python-2.7.7/Python-2.7.7/python
-# echo $PATH
-# which python
-
-echo "Python version:"
-
-python --version 2>&1
-
-# if [ ! -d  "$deps_par_dir/depot_tools" ]; then 
-#     echo "Pulling depot_tools"
-#     cd "$deps_par_dir/"
-#     git clone https://chromium.googlesource.com/chromium/tools/depot_tools
-# else
-#     echo "depot_tool exists"
-# fi
 
 
-# cd $mem_balancer_dir
-# export PATH="$deps_par_dir/depot_tools:$PATH"
-# export PATH=":$PATH"
+if [ ! -d  "$deps_par_dir/depot_tools" ]; then 
+    echo "Pulling depot_tools"
+    cd "$deps_par_dir/"
+    git clone https://chromium.googlesource.com/chromium/tools/depot_tools
+else
+    echo "depot_tool exists"
+fi
+
+
+cd $mem_balancer_dir
+export PATH="$deps_par_dir/depot_tools:$PATH"
+
 # # # ./clean_log
 # # # ./clean_out
-# # cd $mem_balancer_dir
-# echo "** Pulling submodules **"
-# git submodule init
-# git submodule update
-# git submodule sync
 
-# cd $mem_balancer_dir
+cd $mem_balancer_dir
+echo "** Pulling submodules **"
+git submodule init
+git submodule update
+git submodule sync
 
-# echo "V8 should be in $PWD"
-# if [ ! -d  "$deps_par_dir/v8" ]; then
-#     echo "** fetching changes in v8 **"
-#     cd $deps_par_dir/
-#     /usr/bin/bash "$mem_balancer_dir/fetch.sh"
-#     gclient sync
-# else 
-#     echo "v8 already present"
-# fi
-# cd $mem_balancer_dir
+cd $mem_balancer_dir
 
-# # sudo apt install generate-ninja
-# # rm -rf "$deps_par_dir/v8/src/out.gn"
-# # if [ ! -d "$deps_par_dir/v8/src/out.gn" ]; then
-# #     cd $deps_par_dir/v8/src/
-# #     export PATH="/home/pranav/Python-2.7.7/python:$PATH"
-# #     echo $(which python)
-# #     /home/pranav/Python-2.7.7/python tools/dev/v8gen.py x64.release.sample -vv
-# # fi 
+if [ ! -d  "$deps_par_dir/v8" ]; then
+    echo "** fetching changes in v8 **"
+    cd $deps_par_dir/
+    /usr/bin/bash "$mem_balancer_dir/fetch.sh"
+    gclient sync
+else 
+    echo "v8 already present"
+fi
+cd $mem_balancer_dir
+
+# sudo apt install generate-ninja
+rm -rf "$deps_par_dir/v8/src/out.gn"
+if [ ! -d "$deps_par_dir/v8/src/out.gn" ]; then
+    cd $deps_par_dir/v8/src/
+    echo $(which python)
+    tools/dev/v8gen.py x64.release.sample -vv
+fi 
 
 
-# if [ ! -d  "$deps_par_dir/WebKit" ]; then
-#     echo "** pulling Webkit **"    
-#     cd $deps_par_dir/
-#     git clone git@github.com:WebKit/WebKit.git
-# else 
-#     echo "webkit present"
-# fi
+if [ ! -d  "$deps_par_dir/WebKit" ]; then
+    echo "** pulling Webkit **"    
+    cd $deps_par_dir/
+    git clone git@github.com:WebKit/WebKit.git
+else 
+    echo "webkit present"
+fi
 
-# # sudo chmod -R 777 $deps_par_dir/v8
-# # sudo chown -R nightlies $deps_par_dir/v8
-
-# cd $deps_par_dir/v8/src/
-# git stash
-# git checkout origin/2020-12-24
-# git pull origin 2020-12-24
-# gclient sync -f --no-history
+echo "**Fetching latest v8***"
+cd $deps_par_dir/v8/src/
+git stash
+git checkout origin/2020-12-24
+git pull origin 2020-12-24
+gclient sync -f --no-history
 
 # pip install ninja
-# cd $mem_balancer_dir
-# echo "** building v8 **"
-# python -c 'import sys; print(sys.version_info[:])'
-# make v8
+cd $mem_balancer_dir
+echo "** building v8 **"
+make v8
 # echo "** building memorybalancer **"
 # make
 
