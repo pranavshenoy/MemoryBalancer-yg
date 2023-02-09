@@ -22,8 +22,8 @@ deps_par_dir="$mem_balancer_dir/../.."
 cd $mem_balancer_dir
 # mkdir /home/nightlies/Python-2.7.7
 # sudo cp -R /home/pranav/Python-2.7.7/ /home/nightlies/Python-2.7.7/
-# chmod -R 555 /home/nightlies/Python-2.7.7/
-chown -R nightlies /home/nightlies/Python-2.7.7/
+sudo chmod -R 555 /home/nightlies/Python-2.7.7/
+sudo chown -R nightlies /home/nightlies/Python-2.7.7/
 export PATH="/home/nightlies/Python-2.7.7/Python-2.7.7/python:$PATH"
 echo "*************"
 echo "New one"
