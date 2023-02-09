@@ -61,7 +61,7 @@ else
 fi
 
 sudo chmod -R 777 $deps_par_dir/v8
-sudo chown nightlies $deps_par_dir/v8
+sudo chown -R nightlies $deps_par_dir/v8
 
 cd $deps_par_dir/v8/src/
 git stash
