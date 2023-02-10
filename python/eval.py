@@ -21,6 +21,12 @@ BASELINE = {
     "BALANCE_FREQUENCY": 0
 }
 
+YG_BALANCER = {
+    "BALANCE_STRATEGY": "YG_BALANCER",
+    "RESIZE_CFG": {"RESIZE_STRATEGY": "YG_BALANCER"},
+    "BALANCE_FREQUENCY": 0
+}
+
 js_c_range = [3, 5, 10, 20, 30] * 2
 browser_c_range = [0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
 acdc_c_range = [0.1 * i for i in range(1, 11)] + [1 * i for i in range(1, 11)]
@@ -37,62 +43,12 @@ tex += tex_def("ACDCMaxC", f"{tex_fmt(max(acdc_c_range))}\,\%/MB")
 if mode == "macro":
     exit()
 
-# yahoo is removed as it is too flaky, and has too much variance
-# reddit is removed because the ip got banned
-# medium is removed because it allocate little memory in rare fashion
-bench = ["twitter", "cnn", "espn", "facebook", "gmail", "foxnews"]
-
-def BALANCER_CFG(c_range, baseline_time=3):
+def BALANCER_CFG(c_range, baseline_time=3, yg_balancer=3):
     return QUOTE(NONDET(*[{
         "BALANCE_STRATEGY": "classic",
         "RESIZE_CFG": {"RESIZE_STRATEGY": "gradient", "GC_RATE_D":NONDET(*[x / -1e9 for x in c_range])},
         "BALANCE_FREQUENCY": 0
-    }] + baseline_time * [BASELINE]))
-
-cfg_browseri = {
-    "LIMIT_MEMORY": True,
-    "DEBUG": True,
-    "TYPE": "browser",
-    "MEMORY_LIMIT": 10000,
-    "BENCH": NONDET(*[(x,) for x in bench]),
-    "BALANCER_CFG": BALANCER_CFG(browser_c_range)
-}
-
-cfg_browserii = {
-    "LIMIT_MEMORY": True,
-    "DEBUG": True,
-    "TYPE": "browser",
-    "MEMORY_LIMIT": 10000,
-    "BENCH": NONDET(*[(x, y) for x in bench for y in bench if x != y]),
-    "BALANCER_CFG": BALANCER_CFG(browser_c_range)
-}
-
-cfg_browseriii = {
-    "LIMIT_MEMORY": True,
-    "DEBUG": True,
-    "TYPE": "browser",
-    "MEMORY_LIMIT": 10000,
-    "BENCH": NONDET(*[random.sample(bench, 3) for _ in range(30)]),
-    "BALANCER_CFG": BALANCER_CFG(browser_c_range)
-}
-
-eval_browseri = {
-    "Description": "Browser one-tab experiment",
-    "NAME": "browseri",
-    "CFG": cfg_browseri
-}
-
-eval_browserii = {
-    "Description": "Browser two-tab experiment",
-    "NAME": "browserii",
-    "CFG": cfg_browserii
-}
-
-eval_browseriii = {
-    "Description": "Browser three-tab experiment",
-    "NAME": "browseriii",
-    "CFG": cfg_browseriii
-}
+    }] + baseline_time * [BASELINE] + yg_balancer * [YG_BALANCER]))
 
 cfg_jetstream = {
     "LIMIT_MEMORY": True,
@@ -136,7 +92,8 @@ if mode in ["browseriii", "all"]:
 if mode in ["acdc", "all"]:
     evaluation.append(QUOTE(eval_acdc))
 
-subprocess.run("make", shell=True)
+# TODO:  PRANAV remove
+# subprocess.run("make", shell=True)
 
 def run(config, in_path):
     def make_path():
@@ -163,3 +120,12 @@ def run(config, in_path):
                     shutil.rmtree(path)
 
 run(NONDET(*evaluation), Path("log"))
+
+# print(eval_jetstream)
+
+# def full_expand(x):
+#     return flatten_nondet(strip_quote(x))
+
+# print(full_expand(eval_jetstream))
+
+
