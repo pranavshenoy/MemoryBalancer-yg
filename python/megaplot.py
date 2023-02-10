@@ -9,6 +9,7 @@ from util import FrozenDict, deep_freeze
 from anal_common import *
 
 BASELINE = deep_freeze({'BALANCE_STRATEGY': 'ignore', 'RESIZE_CFG': {'RESIZE_STRATEGY': 'ignore'}, 'BALANCE_FREQUENCY': 0})
+YG_BALANCER = deep_freeze({'BALANCE_STRATEGY': 'YG_BALANCER', 'RESIZE_CFG': {'RESIZE_STRATEGY': 'YG_BALANCER', 'GC_RATE_D': 1}, 'BALANCE_FREQUENCY': 0})
 
 def anal_log(path):
     data = []
@@ -95,6 +96,8 @@ def plot(m, benches, name, *, show_baseline=True, normalize_baseline=True, recip
         ret["baseline_time"] = baseline_time
         x = []
         y = []
+        yg_x = []
+        yg_y = []
         baseline_x = []
         baseline_y = []
         for balancer_cfg in m[bench]:
@@ -107,12 +110,15 @@ def plot(m, benches, name, *, show_baseline=True, normalize_baseline=True, recip
                     if normalize_baseline:
                         memory /= baseline_memory
                         time /= baseline_time
-                    if balancer_cfg != BASELINE:
-                        x.append(memory)
-                        y.append(time)
-                    else:
+                    if balancer_cfg == YG_BALANCER:
+                        yg_x.append(memory)
+                        yg_y.append(time)
+                    elif balancer_cfg == BASELINE:
                         baseline_x.append(memory)
                         baseline_y.append(time)
+                    else:
+                        x.append(memory)
+                        y.append(time)                        
                     points.append(Point(memory, time, balancer_cfg, exp, balancer_cfg == BASELINE))
                     transformed_points.append(Point(1 / memory, 1 / time, balancer_cfg, exp, balancer_cfg == BASELINE))
         if invert_graph:
@@ -120,6 +126,7 @@ def plot(m, benches, name, *, show_baseline=True, normalize_baseline=True, recip
             if len(baseline_x) != 0:
                 plt.scatter([1/x_ for x_ in baseline_x], [1/y_ for y_ in baseline_y], label=bench, linewidth=0.1, color="black", s=35)
         else:
+            plt.scatter(yg_x, yg_y, label=bench, linewidth=0.1, s=20, color="orange")
             plt.scatter(x, y, label=bench, linewidth=0.1, s=20)
             if len(baseline_x) != 0:
                 plt.scatter(baseline_x, baseline_y, label=bench, linewidth=0.1, color="black", s=35)

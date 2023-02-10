@@ -43,7 +43,7 @@ tex += tex_def("ACDCMaxC", f"{tex_fmt(max(acdc_c_range))}\,\%/MB")
 if mode == "macro":
     exit()
 
-def BALANCER_CFG(c_range, baseline_time=3, yg_balancer=3):
+def BALANCER_CFG(c_range, baseline_time=3, yg_balancer=10):
     return QUOTE(NONDET(*[{
         "BALANCE_STRATEGY": "classic",
         "RESIZE_CFG": {"RESIZE_STRATEGY": "gradient", "GC_RATE_D":NONDET(*[x / -1e9 for x in c_range])},

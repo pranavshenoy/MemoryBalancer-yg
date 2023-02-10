@@ -138,6 +138,8 @@ def format_sigma(x, pos):
 
 def gen_eval(tex_name, m, *, anal_frac=None, show_baseline=True, reciprocal_regression=True, normalize_baseline=True):
     html_path = f"{html_counter()}.html"
+    print(m)
+    print("M.keys" + str(m.keys()))
     with page(path=path.joinpath(html_path), title='Plot') as doc:
         megaplot.plot(m, m.keys(), tex_name, legend=False, show_baseline=show_baseline, reciprocal_regression=True, normalize_baseline=normalize_baseline, invert_graph=False)
         png_path = f"{tex_name}plot.png"
@@ -222,28 +224,29 @@ def gen_jetstream(directory):
         dirname = os.path.dirname(name)
         with open(dirname + "/cfg") as f:
             cfg = eval(f.read())
-        if cfg["CFG"]["BALANCER_CFG"]["BALANCE_STRATEGY"] == "ignore":
-            if not found_baseline:
-            	found_baseline = True
-            	anal_gc_log.main(cfg, Experiment([Run(dirname + "/")]), legend=False)
-            	plt.xlim([0, 40])
-            	plt.ylim([0, 450])
-            	plt.savefig(f"../membalancer-paper/img/js_baseline_anal.png", bbox_inches='tight')
-            	plt.clf()
-        elif cfg["CFG"]["BALANCER_CFG"]["RESIZE_CFG"]["GC_RATE_D"] == JSCompareAt:
-            if not found_compare:
-                found_compare = True
-                anal_gc_log.main(cfg, Experiment([Run(dirname + "/")]), legend=False)
-                plt.xlim([0, 40])
-                plt.ylim([0, 450])
-                plt.savefig(f"../membalancer-paper/img/js_membalancer_anal.png", bbox_inches='tight')
-                plt.clf()
+        # if cfg["CFG"]["BALANCER_CFG"]["BALANCE_STRATEGY"] == "ignore":
+        #     if not found_baseline:
+        #     	found_baseline = True
+        #     	anal_gc_log.main(cfg, Experiment([Run(dirname + "/")]), legend=False)
+        #     	plt.xlim([0, 40])
+        #     	plt.ylim([0, 450])
+        #     	plt.savefig(f"../membalancer-paper/img/js_baseline_anal.png", bbox_inches='tight')
+        #     	plt.clf()
+        # elif cfg["CFG"]["BALANCER_CFG"]["RESIZE_CFG"]["GC_RATE_D"] == JSCompareAt:
+        #     if not found_compare:
+        #         found_compare = True
+        #         anal_gc_log.main(cfg, Experiment([Run(dirname + "/")]), legend=False)
+        #         plt.xlim([0, 40])
+        #         plt.ylim([0, 450])
+        #         plt.savefig(f"../membalancer-paper/img/js_membalancer_anal.png", bbox_inches='tight')
+        #         plt.clf()
     return gen_eval("JETSTREAM", m_exp)
 
 def gen_acdc(directory):
     m = megaplot.anal_log(directory)
     m_exp = {benches: {cfg: [Experiment([x]) for x in aggregated_runs] for cfg, aggregated_runs in per_benches_m.items()} for benches, per_benches_m in m.items()}
     return gen_eval("ACDC", m_exp, normalize_baseline=False, reciprocal_regression=False)
+    
 
 with page(path=path.joinpath("index.html"), title='Main') as doc:
     d = list(Path("log/").iterdir())
