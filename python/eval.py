@@ -23,7 +23,7 @@ BASELINE = {
 
 YG_BALANCER = {
     "BALANCE_STRATEGY": "YG_BALANCER",
-    "RESIZE_CFG": {"RESIZE_STRATEGY": "YG_BALANCER"},
+    "RESIZE_CFG": {"RESIZE_STRATEGY": "YG_BALANCER", "GC_RATE_D": 1},
     "BALANCE_FREQUENCY": 0
 }
 
@@ -83,12 +83,6 @@ eval_acdc = {
 evaluation = []
 if mode in ["jetstream", "all"]:
     evaluation.append(QUOTE(eval_jetstream))
-if mode in ["browseri", "all"]:
-    evaluation.append(QUOTE(eval_browseri))
-if mode in ["browserii", "all"]:
-    evaluation.append(QUOTE(eval_browserii))
-if mode in ["browseriii", "all"]:
-    evaluation.append(QUOTE(eval_browseriii))
 if mode in ["acdc", "all"]:
     evaluation.append(QUOTE(eval_acdc))
 
