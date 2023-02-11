@@ -137,9 +137,7 @@ def format_sigma(x, pos):
         return ("+" if x > 0 else "") + str(x) + sigma
 
 def gen_eval(tex_name, m, *, anal_frac=None, show_baseline=True, reciprocal_regression=True, normalize_baseline=True):
-    html_path = f"{html_counter()}.html"
-    print(m)
-    print("M.keys" + str(m.keys()))
+    html_path = f"{html_counter()}.html"    
     with page(path=path.joinpath(html_path), title='Plot') as doc:
         megaplot.plot(m, m.keys(), tex_name, legend=False, show_baseline=show_baseline, reciprocal_regression=True, normalize_baseline=normalize_baseline, invert_graph=False)
         png_path = f"{tex_name}plot.png"
