@@ -55,7 +55,7 @@ cfg_jetstream = {
     "DEBUG": True,
     "TYPE": "jetstream",
     "MEMORY_LIMIT": 10000,
-    "BENCH": ["pdfjs", "splay", "typescript"],
+    "BENCH": NONDET("pdfjs.js", "splay.js", "typescript.js", "box2d.js", "early-boyer.js"),
     "BALANCER_CFG": BALANCER_CFG(js_c_range)
 }
 
@@ -87,7 +87,7 @@ if mode in ["acdc", "all"]:
     evaluation.append(QUOTE(eval_acdc))
 
 # TODO:  PRANAV remove
-# subprocess.run("make", shell=True)
+subprocess.run("make", shell=True)
 
 def run(config, in_path):
     def make_path():

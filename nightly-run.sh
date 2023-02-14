@@ -60,11 +60,11 @@ else
     echo "webkit present"
 fi
 
-echo "**Fetching latest v8***"
-cd $deps_par_dir/v8/src/
-git stash
-git checkout origin/2020-12-24
-git pull origin 2020-12-24
+# echo "**Fetching latest v8***"
+# cd $deps_par_dir/v8/src/
+# git stash
+# git checkout origin/2020-12-24
+# git pull origin 2020-12-24
 # gclient sync -f --no-history
 
 # pip install ninja
@@ -76,7 +76,7 @@ make
 
 
 
-# echo "** running eval **"
+echo "** running eval **"
 python3 python/eval.py "jetstream"
 # python3 python/eval.py "acdc"
 # python3 python/gen.py --action=open
