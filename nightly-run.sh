@@ -3,7 +3,7 @@
 set -e
 set -x
 
-#cleanup
+
 mkdir -p log
 
 mem_balancer_dir=$PWD
@@ -60,16 +60,18 @@ else
     echo "webkit present"
 fi
 
-# echo "**Fetching latest v8***"
-# cd $deps_par_dir/v8/src/
-# git stash
-# git checkout origin/2020-12-24
-# git pull origin 2020-12-24
+echo "**Fetching latest v8***"
+cd $deps_par_dir/v8/src/
+echo  "$deps_par_dir/v8/src/"
+git stash
+git checkout origin/2020-12-24
+git pull origin 2020-12-24
 # gclient sync -f --no-history
 
 # pip install ninja
 cd $mem_balancer_dir
 echo "** building v8 **"
+make clean
 make v8
 echo "** building memorybalancer **"
 make
