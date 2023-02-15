@@ -56,8 +56,9 @@ cfg_jetstream = {
     "DEBUG": True,
     "TYPE": "jetstream",
     "MEMORY_LIMIT": 10000,
-    "BENCH": NONDET("pdfjs.js", "splay.js", "typescript.js", "box2d.js", "early-boyer.js"),
-    "BALANCER_CFG": BALANCER_CFG(js_c_range, baseline_time=10, )
+    "BENCH": "box2d.js",
+    # "BENCH": NONDET("pdfjs.js", "splay.js", "typescript.js", "box2d.js", "early-boyer.js"),
+    "BALANCER_CFG": BALANCER_CFG(js_c_range, baseline_time=5)
 }
 
 eval_jetstream = {

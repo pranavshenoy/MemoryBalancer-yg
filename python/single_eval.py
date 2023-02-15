@@ -22,6 +22,7 @@ assert(len(sys.argv) == 3)
 cfg = eval(sys.argv[1])["CFG"]
 result_directory = sys.argv[2] + "/"
 
+GC_RATE_D = None
 print(f"running: {cfg}")
 LIMIT_MEMORY = cfg["LIMIT_MEMORY"]
 DEBUG = cfg["DEBUG"]
@@ -89,7 +90,8 @@ with open(result_directory+"balancer_out", "w") as balancer_out:
         v8_env_vars["USE_MEMBALANCER"] = "1"
         v8_env_vars["SKIP_RECOMPUTE_LIMIT"] = "1"
         v8_env_vars["SKIP_MEMORY_REDUCER"] = "1"
-        v8_env_vars["C_VALUE"] = str(GC_RATE_D)
+        if GC_RATE_D is not None:    
+            v8_env_vars["C_VALUE"] = str(GC_RATE_D)
         if BALANCE_STRATEGY == "YG_BALANCER":
             v8_env_vars["YG_BALANCER"] = "1"
     if TYPE == "jetstream":

@@ -71,7 +71,7 @@ git pull origin 2020-12-24
 # pip install ninja
 cd $mem_balancer_dir
 echo "** building v8 **"
-make clean
+# make clean
 make v8
 echo "** building memorybalancer **"
 make
