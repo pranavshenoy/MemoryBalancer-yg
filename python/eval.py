@@ -6,6 +6,7 @@ import sys
 import json
 import shutil
 import os
+import matplotlib.pyplot as plt
 from git_check import get_commit
 from util import tex_def, tex_fmt
 import paper
@@ -163,7 +164,7 @@ def get_values_in(filename, key):
             j = json.loads(line)
             # major_gc_time = j["total_major_gc_time"]
             res.append(j[key])
-    return res
+    return sum(res)
     
 
 def compute_values(gc_file, mem_file):
@@ -174,35 +175,59 @@ def compute_values(gc_file, mem_file):
 
 def read_cfg(dir):
     cfg = {}
-    
-    with open(os.path.join(dir, "cfg")) as f:
-        cfg = json.load(f)
+
+    line = ""
+    path = os.path.join(dir, "cfg")
+    with open(path) as f:
+        for l in f.readlines():
+            line +=  l
+    line = line.replace("'", '"')
+    line = line.replace("True", "true")
+    line = line.replace("False", "false")
+    cfg = json.loads(line)
+    print(cfg)
     return cfg
 
 
-# res = [yg:{x: [val], y: [val]}, classic:{x: [val], y: [val]}, ignore:{x: [val], y: [val]}]]
+# res = {yg:{x: [val], y: [val]}, classic:{x: [val], y: [val]}, ignore:{x: [val], y: [val]}]}
 def eval_jetstream(benchmark, root_dir):
     dirs = get_dirs(root_dir)
-    result = []
+    result = {}
     for dir in dirs:
         cfg = read_cfg(dir)
         if cfg['CFG']['BENCH'] != benchmark:
             continue
         balance_type = cfg['CFG']['BALANCER_CFG']['BALANCE_STRATEGY']
-        gc_file = glob.glob('*.gc.log')[0]
-        mem_file = glob.glob('*.memory.log')[0]
+        gc_file = glob.glob(dir+'/*.gc.log')[0]
+        mem_file = glob.glob(dir+'/*.memory.log')[0]
         x, y = compute_values(gc_file, mem_file)
-        result[balance_type]['x'].append(x)
-        result[balance_type]['y'].append(y)
+        if balance_type not in result.keys():
+            result[balance_type] = {}
+            result[balance_type]["x"] = []
+            result[balance_type]["y"] = []
+        result[balance_type]["x"].append(x)
+        result[balance_type]["y"].append(y)
 
     return result
 
+def plot(values, root_dir):
+    colors = ["orange", "black", "blue"]
+    plt.xlabel("Heap Memory (Bytes)")
+    plt.ylabel("gc time (ns)")
+    for (idx, key) in enumerate(values.keys()):
+        plt.scatter(values[key]["x"], values[key]["y"], label=key, linewidth=0.1, s=20, color=colors[idx])
+    path = os.path.join(root_dir, "plot.png")
+    plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left")
+    plt.savefig(path, bbox_inches='tight')
+
+#uncomment to run experiments
+# run()
+
 result = eval_jetstream("box2d.js", root_dir)
-print(result)
-    
+plot(result, root_dir)    
 # log_path = make_path(Path("log"))
 
-# run()
+
 
 
 
