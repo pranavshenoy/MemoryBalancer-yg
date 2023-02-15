@@ -13,11 +13,21 @@ import paper
 from EVAL import *
 import glob
 
-assert len(sys.argv) == 3
-mode = sys.argv[1]
-assert mode in ["jetstream", "browseri", "browserii", "browseriii", "acdc", "all", "macro"]
+# assert len(sys.argv) == 3
+# mode = sys.argv[1]
+# assert mode in ["jetstream", "browseri", "browserii", "browseriii", "acdc", "all", "macro"]
 
-root_dir = sys.argv[2]
+def make_path(in_path):
+    path = in_path.joinpath(time.strftime("%Y-%m-%d-%H-%M-%S"))
+    path.mkdir()
+    return path
+
+argc = len(sys.argv)
+if argc > 1:
+    root_dir = sys.argv[1]
+else:
+    root_dir = make_path(Path("log"))
+
 
 
 
@@ -37,18 +47,7 @@ YG_BALANCER = {
 js_c_range = [3, 4, 5, 7, 10, 13, 15, 17, 20, 30] * 2
 browser_c_range = [0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
 acdc_c_range = [0.1 * i for i in range(1, 11)] + [1 * i for i in range(1, 11)]
-tex = ""
-tex += tex_def("JSMinC", f"{tex_fmt(min(js_c_range))}\,\%/MB")
-tex += tex_def("JSMaxC", f"{tex_fmt(max(js_c_range))}\,\%/MB")
-tex += tex_def("WEBMinC", f"{tex_fmt(min(browser_c_range))}\,\%/MB")
-tex += tex_def("WEBMaxC", f"{tex_fmt(max(browser_c_range))}\,\%/MB")
-tex += tex_def("ACDCMinC", f"{tex_fmt(min(acdc_c_range))}\,\%/MB")
-tex += tex_def("ACDCMaxC", f"{tex_fmt(max(acdc_c_range))}\,\%/MB")
 
-
-
-if mode == "macro":
-    exit()
 
 def BALANCER_CFG(c_range, baseline_time=3, yg_balancer=10):
     return QUOTE(NONDET(*[{
@@ -62,7 +61,7 @@ cfg_jetstream = {
     "DEBUG": True,
     "TYPE": "jetstream",
     "MEMORY_LIMIT": 10000,
-    "BENCH": "box2d.js",
+    # "BENCH": "box2d.js",
     # "BENCH": NONDET("pdfjs.js", "splay.js", "typescript.js", "box2d.js", "early-boyer.js"),
     "BALANCER_CFG": BALANCER_CFG(js_c_range, baseline_time=5)
 }
@@ -73,78 +72,31 @@ eval_jetstream = {
     "CFG": cfg_jetstream
 }
 
-cfg_acdc = {
-    "LIMIT_MEMORY": True,
-    "DEBUG": True,
-    "TYPE": "acdc",
-    "MEMORY_LIMIT": 10000,
-    "BENCH": ["acdc"],
-    "BALANCER_CFG": BALANCER_CFG(acdc_c_range, baseline_time = 20)
-}
 
-eval_acdc = {
-    "Description": "ACDC-JS experiment",
-    "NAME": "acdc",
-    "CFG": cfg_acdc,
-}
 
-evaluation = []
-if mode in ["jetstream", "all"]:
-    evaluation.append(QUOTE(eval_jetstream))
-if mode in ["acdc", "all"]:
-    evaluation.append(QUOTE(eval_acdc))
-
-# TODO:  PRANAV remove
-# subprocess.run("make", shell=True)
-
-# def run(config, in_path):
-#     def make_path():
-#         path = in_path.joinpath(time.strftime("%Y-%m-%d-%H-%M-%S"))
-#         path.mkdir()
-#         with open(path.joinpath("cfg"), "w") as f:
-#             f.write(str(config))
-#         return path
-#     if has_meta(config):
-#         path = make_path()
-#         for x in strip_quote(flatten_nondet(config)).l:
-#             run(x, path)
-#     else:
-#         for i in range(5):
-#             try:
-#                 path = make_path()
-#                 cmd = f'python3 python/single_eval.py "{config}" {path}'
-#                 subprocess.run(cmd, shell=True, check=True)
-#                 break
-#             except subprocess.CalledProcessError as e:
-#                 print(e.output)
-#                 subprocess.run("pkill -f chrome", shell=True)
-#                 if os.path.exists(path):
-#                     shutil.rmtree(path)
-
-# run(NONDET(*evaluation), Path("log"))
-
-# print(eval_jetstream)
-
-def make_path(in_path):
-    path = in_path.joinpath(time.strftime("%Y-%m-%d-%H-%M-%S"))
-    path.mkdir()
-    return path
-
-cfgs = []
-
+flattened_cfgs = []
 def flatten_config(cfg):
     if has_meta(cfg):
         for x in strip_quote(flatten_nondet(cfg)).l:
             flatten_config(x)
     else:
-        cfgs.append(cfg)
-
+        flattened_cfgs.append(cfg)
 flatten_config(eval_jetstream)
 
 
-def run(log_path):
+def add_more_benchmarks_to(config):
+    all_cfgs = []
+    for bm in ["pdfjs.js", "splay.js", "typescript.js", "box2d.js", "early-boyer.js"]:
+        for cfg in flattened_cfgs:
+            new_cfg = cfg
+            new_cfg["CFG"]["BENCH"] = bm
+            all_cfgs.append(new_cfg)
+    return all_cfgs
+
+
+def run(cfgs, root_dir):
     for (idx, cfg) in enumerate(cfgs):
-        exp_path = log_path.joinpath(str(idx))
+        exp_path = root_dir.joinpath(str(idx))
         exp_path.mkdir()
         with open(exp_path.joinpath("cfg"), "w") as f:
                 f.write(str(cfg))
@@ -157,7 +109,7 @@ def get_dirs(path):
     return dirs
 
 
-def get_values_in(filename, key):
+def get_values_from(filename, key):
     res = []
     with open(filename) as f:
         for line in f.readlines():
@@ -168,8 +120,8 @@ def get_values_in(filename, key):
     
 
 def compute_values(gc_file, mem_file):
-    x = get_values_in(mem_file, "Limit")
-    y = get_values_in(gc_file, "total_major_gc_time")
+    x = get_values_from(gc_file, "before_memory") - get_values_from(gc_file, "after_memory")
+    y = get_values_from(gc_file, "total_gc_time")  #total_gc_time  total_major_gc_time
     return (x, y)
 
 
@@ -215,17 +167,19 @@ def plot(values, root_dir):
     plt.xlabel("Heap Memory (Bytes)")
     plt.ylabel("gc time (ns)")
     for (idx, key) in enumerate(values.keys()):
-        plt.scatter(values[key]["x"], values[key]["y"], label=key, linewidth=0.1, s=20, color=colors[idx])
+        size = len(values[key]["x"])
+        plt.scatter([ x / size for x in values[key]["x"]], [ y / size for y in values[key]["y"]], label=key, linewidth=0.1, s=20, color=colors[idx])
     path = os.path.join(root_dir, "plot.png")
     plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left")
     plt.savefig(path, bbox_inches='tight')
 
 #uncomment to run experiments
-# run()
+cfgs = add_more_benchmarks_to(eval_jetstream)
+run(cfgs, root_dir)
 
-result = eval_jetstream("box2d.js", root_dir)
-plot(result, root_dir)    
-# log_path = make_path(Path("log"))
+# result = eval_jetstream("box2d.js", root_dir)
+# plot(result, root_dir)    
+
 
 
 
