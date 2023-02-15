@@ -79,7 +79,7 @@ make
 
 
 echo "** running eval **"
-python3 python/eval.py "jetstream"
+python3 python/eval.py 
 # python3 python/eval.py "acdc"
 # python3 python/gen.py --action=open
 # echo "** uploading results **"
