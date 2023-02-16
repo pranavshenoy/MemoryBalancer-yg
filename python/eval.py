@@ -12,6 +12,7 @@ from util import tex_def, tex_fmt
 import paper
 from EVAL import *
 import glob
+import copy
 
 # assert len(sys.argv) == 3
 # mode = sys.argv[1]
@@ -86,9 +87,9 @@ flatten_config(eval_jetstream)
 
 def add_more_benchmarks_to(config):
     all_cfgs = []
-    for bm in ["pdfjs.js", "splay.js", "typescript.js", "box2d.js", "early-boyer.js"]:
+    for bm in ["pdfjs.js", "splay.js", "typescript.js", "box2d.js", "earley-boyer.js"]:
         for cfg in flattened_cfgs:
-            new_cfg = cfg
+            new_cfg = copy.deepcopy(cfg)
             new_cfg["CFG"]["BENCH"] = bm
             all_cfgs.append(new_cfg)
     return all_cfgs
