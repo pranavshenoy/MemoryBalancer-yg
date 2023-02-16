@@ -51,6 +51,7 @@ def get_cfg(balance_strategy, c_range):
     return cfg
 
 def BALANCER_CFG(c_range, baseline_time=10):
+    # return QUOTE(NONDET(*[get_cfg("YG_BALANCER", c_range)]))
     return QUOTE(NONDET(*[get_cfg("classic", c_range)] + baseline_time * [BASELINE] + [get_cfg("YG_BALANCER", c_range)]))
 
 cfg_jetstream = {
@@ -58,7 +59,7 @@ cfg_jetstream = {
     "DEBUG": True,
     "TYPE": "jetstream",
     "MEMORY_LIMIT": 10000,
-    "BALANCER_CFG": BALANCER_CFG(js_c_range, baseline_time=5)
+    "BALANCER_CFG": BALANCER_CFG(js_c_range, baseline_time=2)
 }
 
 eval_jetstream = {
