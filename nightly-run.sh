@@ -67,11 +67,10 @@ git stash
 git checkout origin/2020-12-24
 git pull origin 2020-12-24
 # gclient sync -f --no-history
-
 # pip install ninja
 cd $mem_balancer_dir
 echo "** building v8 **"
-# make clean
+make clean
 make v8
 echo "** building memorybalancer **"
 make
@@ -79,7 +78,7 @@ make
 
 
 echo "** running eval **"
-python3 python/eval.py 
+python3 python/eval.py "run"
 # python3 python/eval.py "acdc"
 # python3 python/gen.py --action=open
 # echo "** uploading results **"

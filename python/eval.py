@@ -14,22 +14,26 @@ from EVAL import *
 import glob
 import copy
 
-# assert len(sys.argv) == 3
-# mode = sys.argv[1]
-# assert mode in ["jetstream", "browseri", "browserii", "browseriii", "acdc", "all", "macro"]
+assert len(sys.argv) > 1
+mode = sys.argv[1]
+assert mode in ["run", "eval"]
 
 def make_path(in_path):
     path = in_path.joinpath(time.strftime("%Y-%m-%d-%H-%M-%S"))
     path.mkdir()
     return path
 
-argc = len(sys.argv)
-if argc > 1:
-    root_dir = sys.argv[1]
-else:
+if mode == "run":
     root_dir = make_path(Path("log"))
+else:
+    assert len(sys.argv) > 2
+    root_dir = sys.argv[2]
+    
+benchmarks = ["pdfjs.js", "splay.js", "typescript.js", "box2d.js", "earley-boyer.js"]
 
-
+js_c_range = [3, 5, 10, 20, 30]
+# js_c_range = [3, 4, 5, 7, 10, 13, 15, 17, 20, 30] * 2
+acdc_c_range = [0.1 * i for i in range(1, 11)] + [1 * i for i in range(1, 11)]
 
 
 BASELINE = {
@@ -38,32 +42,22 @@ BASELINE = {
     "BALANCE_FREQUENCY": 0
 }
 
-YG_BALANCER = {
-    "BALANCE_STRATEGY": "YG_BALANCER",
-    "RESIZE_CFG": {"RESIZE_STRATEGY": "YG_BALANCER", "GC_RATE_D": 1},
-    "BALANCE_FREQUENCY": 0
-}
-
-# js_c_range = [3, 5, 10, 20, 30] * 2
-js_c_range = [3, 4, 5, 7, 10, 13, 15, 17, 20, 30] * 2
-browser_c_range = [0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
-acdc_c_range = [0.1 * i for i in range(1, 11)] + [1 * i for i in range(1, 11)]
-
-
-def BALANCER_CFG(c_range, baseline_time=3, yg_balancer=10):
-    return QUOTE(NONDET(*[{
-        "BALANCE_STRATEGY": "classic",
+def get_cfg(balance_strategy, c_range):
+    cfg = {
+        "BALANCE_STRATEGY": balance_strategy,
         "RESIZE_CFG": {"RESIZE_STRATEGY": "gradient", "GC_RATE_D":NONDET(*[x / -1e9 for x in c_range])},
         "BALANCE_FREQUENCY": 0
-    }] + baseline_time * [BASELINE] + yg_balancer * [YG_BALANCER]))
+    }
+    return cfg
+
+def BALANCER_CFG(c_range, baseline_time=10):
+    return QUOTE(NONDET(*[get_cfg("classic", c_range)] + baseline_time * [BASELINE] + [get_cfg("YG_BALANCER", c_range)]))
 
 cfg_jetstream = {
     "LIMIT_MEMORY": True,
     "DEBUG": True,
     "TYPE": "jetstream",
     "MEMORY_LIMIT": 10000,
-    # "BENCH": "box2d.js",
-    # "BENCH": NONDET("pdfjs.js", "splay.js", "typescript.js", "box2d.js", "early-boyer.js"),
     "BALANCER_CFG": BALANCER_CFG(js_c_range, baseline_time=5)
 }
 
@@ -87,7 +81,7 @@ flatten_config(eval_jetstream)
 
 def add_more_benchmarks_to(config):
     all_cfgs = []
-    for bm in ["pdfjs.js", "splay.js", "typescript.js", "box2d.js", "earley-boyer.js"]:
+    for bm in benchmarks:
         for cfg in flattened_cfgs:
             new_cfg = copy.deepcopy(cfg)
             new_cfg["CFG"]["BENCH"] = bm
@@ -121,8 +115,8 @@ def get_values_from(filename, key):
     
 
 def compute_values(gc_file, mem_file):
-    x = get_values_from(gc_file, "before_memory") - get_values_from(gc_file, "after_memory")
-    y = get_values_from(gc_file, "total_gc_time")  #total_gc_time  total_major_gc_time
+    x = get_values_from(gc_file, "size_of_objects")
+    y = get_values_from(gc_file, "total_gc_time")
     return (x, y)
 
 
@@ -163,23 +157,29 @@ def eval_jetstream(benchmark, root_dir):
 
     return result
 
-def plot(values, root_dir):
+def plot(values, root_dir, benchmark):
     colors = ["orange", "black", "blue"]
     plt.xlabel("Heap Memory (Bytes)")
     plt.ylabel("gc time (ns)")
     for (idx, key) in enumerate(values.keys()):
         size = len(values[key]["x"])
         plt.scatter([ x / size for x in values[key]["x"]], [ y / size for y in values[key]["y"]], label=key, linewidth=0.1, s=20, color=colors[idx])
-    path = os.path.join(root_dir, "plot.png")
+    path = os.path.join(root_dir, benchmark+"-plot.png")
     plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left")
     plt.savefig(path, bbox_inches='tight')
 
-#uncomment to run experiments
-cfgs = add_more_benchmarks_to(eval_jetstream)
-run(cfgs, root_dir)
 
-# result = eval_jetstream("box2d.js", root_dir)
-# plot(result, root_dir)    
+def eval_and_plot():
+    for bm in benchmarks:
+        result = eval_jetstream(bm, root_dir)
+        plot(result, root_dir, bm)
+
+if mode == "run":
+    cfgs = add_more_benchmarks_to(eval_jetstream)
+    run(cfgs, root_dir)
+eval_and_plot()
+
+    
 
 
 
