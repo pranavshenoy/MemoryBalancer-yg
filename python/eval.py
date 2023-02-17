@@ -13,6 +13,7 @@ import paper
 from EVAL import *
 import glob
 import copy
+import numpy as np
 
 assert len(sys.argv) > 1
 mode = sys.argv[1]
@@ -51,8 +52,8 @@ def get_cfg(balance_strategy, c_range):
     return cfg
 
 def BALANCER_CFG(c_range, baseline_time=10):
-    # return QUOTE(NONDET(*[get_cfg("YG_BALANCER", c_range)]))
-    return QUOTE(NONDET(*[get_cfg("classic", c_range)] + baseline_time * [BASELINE] + [get_cfg("YG_BALANCER", c_range)]))
+    return QUOTE(NONDET(*[get_cfg("YG_BALANCER", c_range)]))
+    # return QUOTE(NONDET(*[get_cfg("classic", c_range)] + baseline_time * [BASELINE] + [get_cfg("YG_BALANCER", c_range)]))
 
 cfg_jetstream = {
     "LIMIT_MEMORY": True,
@@ -112,12 +113,12 @@ def get_values_from(filename, key):
             j = json.loads(line)
             # major_gc_time = j["total_major_gc_time"]
             res.append(j[key])
-    return sum(res)
+    return res
     
 
 def compute_values(gc_file, mem_file):
-    x = get_values_from(gc_file, "size_of_objects")
-    y = get_values_from(gc_file, "total_gc_time")
+    x = sum(get_values_from(gc_file, "size_of_objects"))
+    y = sum(get_values_from(gc_file, "total_gc_time"))
     return (x, y)
 
 
@@ -142,7 +143,7 @@ def eval_jetstream(benchmark, root_dir):
     dirs = get_dirs(root_dir)
     result = {}
     for dir in dirs:
-        cfg = read_cfg(dir)
+        cfg =  read_cfg(dir)
         if cfg['CFG']['BENCH'] != benchmark:
             continue
         balance_type = cfg['CFG']['BALANCER_CFG']['BALANCE_STRATEGY']
@@ -159,15 +160,47 @@ def eval_jetstream(benchmark, root_dir):
     return result
 
 def plot(values, root_dir, benchmark):
-    colors = ["orange", "black", "blue"]
+    colors = {"YG_BALANCER":"orange", "ignore": "black", "classic":"blue"}
+    plt.figure()
     plt.xlabel("Heap Memory (Bytes)")
     plt.ylabel("gc time (ns)")
     for (idx, key) in enumerate(values.keys()):
         size = len(values[key]["x"])
-        plt.scatter([ x / size for x in values[key]["x"]], [ y / size for y in values[key]["y"]], label=key, linewidth=0.1, s=20, color=colors[idx])
+        plt.scatter([ x / size for x in values[key]["x"]], [ y / size for y in values[key]["y"]], label=key, linewidth=0.1, s=20, color=colors[key])
     path = os.path.join(root_dir, benchmark+"-plot.png")
     plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left")
     plt.savefig(path, bbox_inches='tight')
+    plt.close()
+
+
+def eval_single_run():
+
+    def plot(dir, yg_capacity, og_capacity):
+        plt.figure()
+        plt.xlabel("progressing")
+        plt.ylabel("Heap limits (Bytes)")
+        x_yg = np.arange(0, len(yg_capacity), 1)
+        x_og = np.arange(0, len(og_capacity), 1)
+        print(set(yg_capacity))
+        plt.plot(x_yg, yg_capacity, color="blue", label="young gen capacity (semispace)", linewidth=0.1)
+        # plt.plot(x_og, og_capacity, color="red", label="Old gen capacity", linewidth=0.1)
+            
+        path = os.path.join(dir +"size_limit.png")
+        plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left")
+        plt.savefig(path, bbox_inches='tight')
+        plt.close()
+
+    dirs = get_dirs(root_dir)
+    result = {}
+    for dir in dirs:
+        cfg =  read_cfg(dir)
+        balance_type = cfg['CFG']['BALANCER_CFG']['BALANCE_STRATEGY']
+        gc_file = glob.glob(dir+'/*.gc.log')[0]
+        mem_file = glob.glob(dir+'/*.memory.log')[0]
+        yg_capacity = get_values_from(gc_file, "new_space_capacity")
+        og_capacity = get_values_from(gc_file, "Limit")
+        plot(dir, yg_capacity, og_capacity)
+
 
 
 def eval_and_plot():
@@ -178,7 +211,8 @@ def eval_and_plot():
 if mode == "run":
     cfgs = add_more_benchmarks_to(eval_jetstream)
     run(cfgs, root_dir)
-eval_and_plot()
+# eval_and_plot()
+eval_single_run()
 
     
 
