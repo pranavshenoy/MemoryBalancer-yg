@@ -51,9 +51,9 @@ def get_cfg(balance_strategy, c_range):
     }
     return cfg
 
-def BALANCER_CFG(c_range, baseline_time=10):
-    return QUOTE(NONDET(*[get_cfg("YG_BALANCER", c_range)]))
-    # return QUOTE(NONDET(*[get_cfg("classic", c_range)] + baseline_time * [BASELINE] + [get_cfg("YG_BALANCER", c_range)]))
+def BALANCER_CFG(c_range, baseline_time=5):
+    # return QUOTE(NONDET(*[get_cfg("YG_BALANCER", c_range)]))
+    return QUOTE(NONDET(*[get_cfg("classic", c_range)] + baseline_time * [BASELINE] + [get_cfg("YG_BALANCER", c_range)]))
 
 cfg_jetstream = {
     "LIMIT_MEMORY": True,
@@ -211,8 +211,8 @@ def eval_and_plot():
 if mode == "run":
     cfgs = add_more_benchmarks_to(eval_jetstream)
     run(cfgs, root_dir)
-# eval_and_plot()
-eval_single_run()
+eval_and_plot()
+# eval_single_run()
 
     
 
