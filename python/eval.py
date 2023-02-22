@@ -37,6 +37,7 @@ js_c_range = [3, 5, 10, 20, 30]
 acdc_c_range = [0.1 * i for i in range(1, 11)] + [1 * i for i in range(1, 11)]
 
 
+
 BASELINE = {
     "BALANCE_STRATEGY": "ignore",
     "RESIZE_CFG": {"RESIZE_STRATEGY": "ignore"},
@@ -99,7 +100,7 @@ def run(cfgs, root_dir):
                 f.write(str(cfg))
         cmd = f'python3 python/single_eval.py "{cfg}" {exp_path}'
         subprocess.run(cmd, shell=True, check=True)
-        print(str(idx) + " " + str(cfg))
+        # print(str(idx) + " " + str(cfg))
 
 def get_dirs(path):
     dirs = glob.glob(path+"/*/")
@@ -107,13 +108,13 @@ def get_dirs(path):
 
 
 def get_values_from(filename, key):
-    res = []
-    with open(filename) as f:
-        for line in f.readlines():
-            j = json.loads(line)
-            # major_gc_time = j["total_major_gc_time"]
-            res.append(j[key])
-    return res
+        res = []
+        with open(filename) as f:
+            for line in f.readlines():
+                j = json.loads(line)
+                # major_gc_time = j["total_major_gc_time"]
+                res.append(j[key])
+        return res
     
 
 def compute_values(gc_file, mem_file):
@@ -134,7 +135,7 @@ def read_cfg(dir):
     line = line.replace("True", "true")
     line = line.replace("False", "false")
     cfg = json.loads(line)
-    print(cfg)
+    # print(cfg)
     return cfg
 
 
@@ -172,20 +173,57 @@ def plot(values, root_dir, benchmark):
     plt.savefig(path, bbox_inches='tight')
     plt.close()
 
+# class Wrapper: 
+#     key = ""
+#     legend = ""
+#     label = ""
+#     def __init__(self, key, legend, label):
+#         self.key = key
+#         self.legend = legend
+#         self.label = label
+        
+class ParamWrapper:
+    key = ""
+    legend = ""
+    operation = None
+    def __init__(self, key, legend, operation):
+        self.key = key
+        self.legend = legend
+        self.operation = operation        
 
-def eval_single_run():
+class PlotWrapper:
+    filename = ""
+    x_axis = ""
+    y_axis = ""
+    items = []
+    def __init__(self, filename, x_axis, y_axis, items):
+        self.filename = filename
+        self.y_axis = y_axis
+        self.x_axis = x_axis
+        self.items = items
 
-    def plot(dir, yg_capacity, og_capacity):
+
+
+
+def eval_single_run(config):
+
+    colors = ["blue", "red", "black"]
+    def plot(dir, config):
+        cfg =  read_cfg(dir)
+        balance_type = cfg['CFG']['BALANCER_CFG']['BALANCE_STRATEGY']
+        if balance_type == "YG_BALANCER":
+            print(dir)
+        gc_file = glob.glob(dir+'/*.gc.log')[0]
+        mem_file = glob.glob(dir+'/*.memory.log')[0]
         plt.figure()
-        plt.xlabel("progressing")
-        plt.ylabel("Heap limits (Bytes)")
-        x_yg = np.arange(0, len(yg_capacity), 1)
-        x_og = np.arange(0, len(og_capacity), 1)
-        print(set(yg_capacity))
-        plt.plot(x_yg, yg_capacity, color="blue", label="young gen capacity (semispace)", linewidth=0.1)
-        # plt.plot(x_og, og_capacity, color="red", label="Old gen capacity", linewidth=0.1)
-            
-        path = os.path.join(dir +"size_limit.png")
+        plt.title = balance_type
+        plt.xlabel(config.x_axis)
+        plt.ylabel(config.y_axis)
+        for idx, item in enumerate(config.items):
+            y = item.operation(gc_file)
+            x = np.arange(0, len(y), 1)
+            plt.plot(x, y, color=colors[idx], label=item.legend, linewidth=1)
+        path = os.path.join(dir +config.filename)
         plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left")
         plt.savefig(path, bbox_inches='tight')
         plt.close()
@@ -193,26 +231,44 @@ def eval_single_run():
     dirs = get_dirs(root_dir)
     result = {}
     for dir in dirs:
-        cfg =  read_cfg(dir)
-        balance_type = cfg['CFG']['BALANCER_CFG']['BALANCE_STRATEGY']
-        gc_file = glob.glob(dir+'/*.gc.log')[0]
-        mem_file = glob.glob(dir+'/*.memory.log')[0]
-        yg_capacity = get_values_from(gc_file, "new_space_capacity")
-        og_capacity = get_values_from(gc_file, "Limit")
-        plot(dir, yg_capacity, og_capacity)
+        plot(dir, config)
 
 
 
 def eval_and_plot():
     for bm in benchmarks:
         result = eval_jetstream(bm, root_dir)
+        print("Benchmark: "+ bm + " result: " + str(result))
         plot(result, root_dir, bm)
 
 if mode == "run":
     cfgs = add_more_benchmarks_to(eval_jetstream)
     run(cfgs, root_dir)
-eval_and_plot()
-# eval_single_run()
+# eval_and_plot()
+
+def old_gen_size_of_obj(gc_file):
+    total = get_values_from(gc_file, "size_of_objects")
+    yg = get_values_from(gc_file, "yg_size_of_object")
+    res = []
+    for idx, cur_total in enumerate(total):
+        res.append(cur_total - yg[idx])
+    return res
+
+new_capacity = ParamWrapper("new_space_capacity", "young gen capacity (semispace)", lambda gc_file: get_values_from(gc_file, "new_space_capacity"))
+old_capacity = ParamWrapper("Limit", "Old gen capacity", lambda gc_file: get_values_from(gc_file, "Limit"))
+capacity_plot = PlotWrapper("capacity.png", "Progress", "Heap Limits (B)", [new_capacity, old_capacity])
+
+yg_soo = ParamWrapper("yg_size_of_object", "yg", lambda gc_file: get_values_from(gc_file, "yg_size_of_object"))
+og_soo = ParamWrapper("size_of_objects", "og", lambda gc_file: old_gen_size_of_obj(gc_file))
+size_of_object_plot = PlotWrapper("size_of_obj.png", "Progress", "Size of objects (B)", [yg_soo, og_soo])
+
+
+# yg_gc_time = ParamWrapper("yg_size_of_object", "young gen", lambda gc_file: get_values_from(gc_file, "yg_size_of_object"))
+# og_gc_time = ParamWrapper("total_major_gc_time", "old gen", lambda gc_file: get_values_from(gc_file, "total_major_gc_time"))
+# size_of_object_plot = PlotWrapper("size_of_obj.png", "Progress", "Size of objects (B)", [yg_soo, og_soo])
+
+
+eval_single_run(size_of_object_plot)
 
     
 
