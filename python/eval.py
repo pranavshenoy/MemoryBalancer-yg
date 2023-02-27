@@ -103,7 +103,8 @@ def run(cfgs, root_dir):
         # print(str(idx) + " " + str(cfg))
 
 def get_dirs(path):
-    dirs = glob.glob(path+"/*/")
+    print(path)
+    dirs = glob.glob(str(path)+'/*/')
     return dirs
 
 
@@ -241,11 +242,6 @@ def eval_and_plot():
         print("Benchmark: "+ bm + " result: " + str(result))
         plot(result, root_dir, bm)
 
-if mode == "run":
-    cfgs = add_more_benchmarks_to(eval_jetstream)
-    run(cfgs, root_dir)
-# eval_and_plot()
-
 def old_gen_size_of_obj(gc_file):
     total = get_values_from(gc_file, "size_of_objects")
     yg = get_values_from(gc_file, "yg_size_of_object")
@@ -267,8 +263,11 @@ size_of_object_plot = PlotWrapper("size_of_obj.png", "Progress", "Size of object
 # og_gc_time = ParamWrapper("total_major_gc_time", "old gen", lambda gc_file: get_values_from(gc_file, "total_major_gc_time"))
 # size_of_object_plot = PlotWrapper("size_of_obj.png", "Progress", "Size of objects (B)", [yg_soo, og_soo])
 
-
-eval_single_run(size_of_object_plot)
+if mode == "run":
+    cfgs = add_more_benchmarks_to(eval_jetstream)
+    run(cfgs, root_dir)
+eval_and_plot()
+# eval_single_run(size_of_object_plot)
 
     
 
