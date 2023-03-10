@@ -14,6 +14,7 @@ from EVAL import *
 import glob
 import copy
 import numpy as np
+import statistics
 import collections
 
 assert len(sys.argv) > 1
@@ -33,8 +34,9 @@ else:
     
 benchmarks = ["pdfjs.js", "splay.js", "typescript.js", "box2d.js", "earley-boyer.js"]
 
-js_c_range = [3, 5, 10, 20, 30]
-# js_c_range = [3, 4, 5, 7, 10, 13, 15, 17, 20, 30] * 2
+# js_c_range = [3, 5]
+# js_c_range = [3, 5, 10, 20, 30]
+js_c_range = [3, 4, 5, 7, 10, 13, 15, 17, 20, 30] 
 acdc_c_range = [0.1 * i for i in range(1, 11)] + [1 * i for i in range(1, 11)]
 
 
@@ -55,14 +57,15 @@ def get_cfg(balance_strategy, c_range):
 
 def BALANCER_CFG(c_range, baseline_time=5):
     # return QUOTE(NONDET(*[get_cfg("YG_BALANCER", c_range)]))
-    return QUOTE(NONDET(*[get_cfg("classic", c_range)] + baseline_time * [BASELINE] + [get_cfg("YG_BALANCER", c_range)]))
+    # return QUOTE(NONDET(*[get_cfg("classic", c_range)] + baseline_time * [BASELINE] + [get_cfg("YG_BALANCER", c_range)]))
+    return QUOTE(NONDET(*[get_cfg("classic", c_range)] + baseline_time * [BASELINE])) #PRANAV: for running the old way
 
 cfg_jetstream = {
     "LIMIT_MEMORY": True,
     "DEBUG": True,
     "TYPE": "jetstream",
     "MEMORY_LIMIT": 10000,
-    "BALANCER_CFG": BALANCER_CFG(js_c_range, baseline_time=2)
+    "BALANCER_CFG": BALANCER_CFG(js_c_range, baseline_time=5)
 }
 
 eval_jetstream = {
@@ -84,13 +87,14 @@ flatten_config(eval_jetstream)
 
 
 def add_more_benchmarks_to(config):
-    all_cfgs = []
-    for bm in benchmarks:
-        for cfg in flattened_cfgs:
-            new_cfg = copy.deepcopy(cfg)
-            new_cfg["CFG"]["BENCH"] = bm
-            all_cfgs.append(new_cfg)
-    return all_cfgs
+    return flattened_cfgs #PRANAV: for running the old way
+    # all_cfgs = []
+    # for bm in benchmarks:
+    #     for cfg in flattened_cfgs:
+    #         new_cfg = copy.deepcopy(cfg)
+    #         new_cfg["CFG"]["BENCH"] = bm
+    #         all_cfgs.append(new_cfg)
+    # return all_cfgs
 
 
 def run(cfgs, root_dir):
@@ -111,34 +115,18 @@ def get_dirs(path):
 
 def get_values_from(filename, key):
         res = []
+        if os.stat(filename).st_size == 0:
+            return [0]
         with open(filename) as f:
             for line in f.readlines():
+                # print(line)
                 j = json.loads(line)
+                
                 # major_gc_time = j["total_major_gc_time"]
                 res.append(j[key])
+        print(len(res))
         return res
     
-
-def compute_values(gc_file, mem_file):
-    # x = sum(get_values_from(gc_file, "size_of_objects"))
-    # y = sum(get_values_from(gc_file, "total_gc_time"))
-    
-    #old gen
-    # x = sum(get_values_from(gc_file, "size_of_objects")) - sum(get_values_from(gc_file, "yg_size_of_object"));
-    # y = sum(get_values_from(gc_file, "total_major_gc_time"));
-
-    #young gen
-    # x = sum(get_values_from(gc_file, "yg_size_of_object"));
-    # y = sum(get_values_from(gc_file, "total_gc_time")) - sum(get_values_from(gc_file, "total_major_gc_time"));
-
-    # x = sum(get_values_from(gc_file, "yg_size_of_object"))
-    # y = sum(get_values_from(gc_file, "yg_gc_time"))
-    
-    x = sum(get_values_from(gc_file, "og_size_of_object"))
-    y = sum(get_values_from(gc_file, "og_gc_time"))
-    return (x, y)
-
-
 def read_cfg(dir):
     cfg = {}
 
@@ -154,7 +142,6 @@ def read_cfg(dir):
     # print(cfg)
     return cfg
 
-
 # res = {yg:{x: [val], y: [val]}, classic:{x: [val], y: [val]}, ignore:{x: [val], y: [val]}]}
 def eval_jetstream(benchmark, root_dir, plt_config):
     dirs = get_dirs(root_dir)
@@ -166,10 +153,9 @@ def eval_jetstream(benchmark, root_dir, plt_config):
         balance_type = cfg['CFG']['BALANCER_CFG']['BALANCE_STRATEGY']
         gc_file = glob.glob(dir+'/*.gc.log')[0]
         mem_file = glob.glob(dir+'/*.memory.log')[0]
-        x = plt_config.items[0].operation(gc_file)
-        y = plt_config.items[1].operation(gc_file)
-        # print(x)
-        # x, y = compute_values(gc_file, mem_file)
+        x = plt_config.items[0].operation(gc_file, mem_file)
+        y = plt_config.items[1].operation(gc_file, mem_file)
+        print(balance_type + " "+ benchmark + " " + str(x) + " - "+str(y) + " dir: "+ dir)
         if balance_type not in result.keys():
             result[balance_type] = {}
             result[balance_type]["x"] = []
@@ -227,7 +213,7 @@ def eval_single_run(config):
         plt.xlabel(config.x_axis)
         plt.ylabel(config.y_axis)
         for idx, item in enumerate(config.items):
-            y = item.operation(gc_file)
+            y = item.operation(gc_file, mem_file)
             x = np.arange(0, len(y), 1)
             # y = y[:1000]
             # x = x[:1000]
@@ -248,7 +234,6 @@ def eval_single_run(config):
 def eval_and_plot(plt_config):
     for bm in benchmarks:
         result = eval_jetstream(bm, root_dir, plt_config)
-        # print("Benchmark: "+ bm + " result: " + str(result))
         plot(result, root_dir, bm, plt_config)
 
 def old_gen_size_of_obj(gc_file):
@@ -259,53 +244,59 @@ def old_gen_size_of_obj(gc_file):
         res.append(cur_total - yg[idx])
     return res
 
-yg_semispace_limit = ParamWrapper("yg_semispace_limit", "young gen", lambda gc_file: get_values_from(gc_file, "yg_semispace_limit"))
-og_heap_limit = ParamWrapper("og_heap_limit", "old gen", lambda gc_file: get_values_from(gc_file, "og_heap_limit"))
-yg_size_of_object = ParamWrapper("yg_size_of_object", "young gen", lambda gc_file: get_values_from(gc_file, "yg_size_of_object"))
-og_size_of_object = ParamWrapper("og_size_of_object", "old gen", lambda gc_file: get_values_from(gc_file, "og_size_of_object"))
-yg_gc_time = ParamWrapper("yg_gc_time", "young gen", lambda gc_file: get_values_from(gc_file, "yg_gc_time"))
-og_gc_time = ParamWrapper("og_gc_time", "old gen", lambda gc_file: get_values_from(gc_file, "og_gc_time"))
-yg_allocated_bytes_since_last_gc = ParamWrapper("yg_allocated_bytes_since_last_gc", "young gen", lambda gc_file: get_values_from(gc_file, "yg_allocated_bytes_since_last_gc"))
-yg_allocation_time = ParamWrapper("yg_allocation_time", "young gen", lambda gc_file: get_values_from(gc_file, "yg_allocation_time"))
+# yg_semispace_limit = ParamWrapper("yg_semispace_limit", "young gen", lambda gc_file: get_values_from(gc_file, "yg_semispace_limit"))
+# og_heap_limit = ParamWrapper("og_heap_limit", "old gen", lambda gc_file: get_values_from(gc_file, "og_heap_limit"))
+# yg_size_of_object = ParamWrapper("yg_size_of_object", "young gen", lambda gc_file: get_values_from(gc_file, "yg_size_of_object"))
+# og_size_of_object = ParamWrapper("og_size_of_object", "old gen", lambda gc_file: get_values_from(gc_file, "og_size_of_object"))
+# yg_gc_time = ParamWrapper("yg_gc_time", "young gen", lambda gc_file: get_values_from(gc_file, "yg_gc_time"))
+# og_gc_time = ParamWrapper("og_gc_time", "old gen", lambda gc_file: get_values_from(gc_file, "total_major_gc_time"))
+# yg_allocated_bytes_since_last_gc = ParamWrapper("yg_allocated_bytes_since_last_gc", "young gen", lambda gc_file: get_values_from(gc_file, "yg_allocated_bytes_since_last_gc"))
+# yg_allocation_time = ParamWrapper("yg_allocation_time", "young gen", lambda gc_file: get_values_from(gc_file, "yg_allocation_time"))
 
 
 #single config plots
 
 # limit_plot = PlotWrapper("limit_plot.png", "Progress", "Heap Limit (B)", [yg_semispace_limit, og_heap_limit])
-limit_plot = PlotWrapper("limit_plot.png", "Progress", "Heap Limit (B)", [ og_heap_limit])
-size_of_obj_plot = PlotWrapper("size_of_obj_plot.png", "Progress", "Size of objects (B)", [yg_size_of_object, og_size_of_object])
-gc_time_plot = PlotWrapper("gc_time_plot.png", "Progress", "time (ns)", [yg_gc_time, og_gc_time])
+# yg_limit_plot = PlotWrapper("yg_limit_plot.png", "Progress", "Heap Limit (B)", [ yg_semispace_limit])
+# og_limit_plot = PlotWrapper("og_limit_plot.png", "Progress", "Heap Limit (B)", [ og_heap_limit])
+# yg_size_of_obj_plot = PlotWrapper("yg_size_of_obj_plot.png", "Progress", "Size of objects (B)", [yg_size_of_object])
+# og_size_of_obj_plot = PlotWrapper("og_size_of_obj_plot.png", "Progress", "Size of objects (B)", [og_size_of_object])
+# yg_gc_time_plot = PlotWrapper("yg_gc_time_plot.png", "Progress", "time (ns)", [yg_gc_time])
+# og_gc_time_plot = PlotWrapper("og_gc_time_plot.png", "Progress", "time (ns)", [og_gc_time])
 
 
-#global yg_only
-
-total_yg_size_of_object = ParamWrapper("yg_size_of_object", "young gen", lambda gc_file: sum(get_values_from(gc_file, "yg_size_of_object")))
-total_yg_gc_time = ParamWrapper("yg_gc_time", "young gen", lambda gc_file: sum(get_values_from(gc_file, "yg_gc_time")))
-total_yg_gc_time_vs_yg_soo = PlotWrapper("-yg_only.png", "Size of Obj (bytes)", "time (ns)", [total_yg_size_of_object, total_yg_gc_time])
+# #global yg_only
+# total_yg_size_of_object = ParamWrapper("yg_size_of_object", "young gen", lambda gc_file: statistics.mean(get_values_from(gc_file, "yg_size_of_object")))
+# total_yg_gc_time = ParamWrapper("yg_gc_time", "young gen", lambda gc_file: sum(get_values_from(gc_file, "yg_gc_time")))
+# total_yg_gc_time_vs_yg_soo = PlotWrapper("-yg_only.png", "Size of Obj (bytes)", "time (ns)", [total_yg_size_of_object, total_yg_gc_time])
 
 #global og_only
-total_og_size_of_object = ParamWrapper("og_size_of_object", "", lambda gc_file: sum(get_values_from(gc_file, "og_size_of_object")))
-total_og_gc_time = ParamWrapper("og_gc_time", "", lambda gc_file: sum(get_values_from(gc_file, "og_gc_time")))
-total_og_gc_time_vs_og_soo = PlotWrapper("-og_only.png", "Size of Obj (bytes)", "time (ns)", [total_og_size_of_object, total_og_gc_time])
+total_og_size_of_object = ParamWrapper("BenchmarkMemory", "", lambda gc_file, memory_file: statistics.mean(get_values_from(memory_file, "BenchmarkMemory"))/1e6)
+total_og_gc_time = ParamWrapper("total_major_gc_time", "", lambda gc_file, memory_file: sum(get_values_from(gc_file, "total_major_gc_time"))/1e9)
+total_og_gc_time_vs_og_soo = PlotWrapper("-og_only.png", "Size of Obj (MB)", "time (s)", [total_og_size_of_object, total_og_gc_time])
 
 #global total
-total_size_of_object = ParamWrapper("size_of_objects", "", lambda gc_file: sum(get_values_from(gc_file, "size_of_objects")))
-total_gc_time = ParamWrapper("total_gc_time", "", lambda gc_file: sum(get_values_from(gc_file, "total_gc_time")))
-total_gc_time_vs_soo = PlotWrapper("-total.png", "Size of Obj (bytes)", "time (ns)", [total_size_of_object, total_gc_time])
+# total_size_of_object = ParamWrapper("size_of_objects", "", lambda gc_file, memory_file: statistics.mean(get_values_from(gc_file, "size_of_objects")))
+# total_gc_time = ParamWrapper("total_gc_time", "", lambda gc_file, memory_file: sum(get_values_from(memory_file, "total_gc_time")))
+# total_gc_time_vs_soo = PlotWrapper("-total.png", "Size of Obj (bytes)", "time (ns)", [total_size_of_object, total_gc_time])
+
 
 if mode == "run":
     cfgs = add_more_benchmarks_to(eval_jetstream)
     run(cfgs, root_dir)
 
-eval_and_plot(total_gc_time_vs_soo)
-# eval_and_plot(total_og_gc_time_vs_og_soo)
+# global_plots = [total_yg_gc_time_vs_yg_soo, total_og_gc_time_vs_og_soo, total_gc_time_vs_soo]
+global_plots = [total_og_gc_time_vs_og_soo]
+for p in global_plots:
+    eval_and_plot(p)
 
-# all_single_plots = [limit_plot, size_of_obj_plot, gc_time_plot]
+# all_single_plots = [yg_limit_plot, og_limit_plot, yg_size_of_obj_plot, og_size_of_obj_plot, yg_gc_time_plot, og_gc_time_plot]
 # for p in all_single_plots:
 #     eval_single_run(p)
 
 
-    
+
+#running the old way - all benchmarks together
 
 
 
@@ -315,3 +306,5 @@ eval_and_plot(total_gc_time_vs_soo)
 
 
 
+
+# get_values_from("/home/pranav/v8-mb/MemoryBalancer/log/2023-03-09-20-08-00/62YG_BALANCER/231952_51771535825568.memory.log", "BenchmarkMemory")

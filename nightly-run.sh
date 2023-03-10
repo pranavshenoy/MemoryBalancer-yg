@@ -64,8 +64,10 @@ echo "**Fetching latest v8***"
 cd $deps_par_dir/v8/src/
 echo  "$deps_par_dir/v8/src/"
 git stash
-git checkout origin/2020-12-24
-git pull origin 2020-12-24
+# git checkout origin/2020-12-24
+# git pull origin 2020-12-24
+git checkout origin/classic
+git pull origin classic
 # gclient sync -f --no-history
 # pip install ninja
 cd $mem_balancer_dir
