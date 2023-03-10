@@ -19,7 +19,7 @@ import collections
 
 assert len(sys.argv) > 1
 mode = sys.argv[1]
-assert mode in ["run", "eval"]
+assert mode in ["run", "all_plot", "single_run_analysis"]
 
 def make_path(in_path):
     path = in_path.joinpath(time.strftime("%Y-%m-%d-%H-%M-%S"))
@@ -32,7 +32,8 @@ else:
     assert len(sys.argv) > 2
     root_dir = sys.argv[2]
     
-benchmarks = ["pdfjs.js", "splay.js", "typescript.js", "box2d.js", "earley-boyer.js"]
+# benchmarks = ["pdfjs.js", "splay.js", "typescript.js", "box2d.js", "earley-boyer.js"]
+benchmarks = ["all"]
 
 # js_c_range = [3, 5]
 # js_c_range = [3, 5, 10, 20, 30]
@@ -87,14 +88,13 @@ flatten_config(eval_jetstream)
 
 
 def add_more_benchmarks_to(config):
-    return flattened_cfgs #PRANAV: for running the old way
-    # all_cfgs = []
-    # for bm in benchmarks:
-    #     for cfg in flattened_cfgs:
-    #         new_cfg = copy.deepcopy(cfg)
-    #         new_cfg["CFG"]["BENCH"] = bm
-    #         all_cfgs.append(new_cfg)
-    # return all_cfgs
+    all_cfgs = []
+    for bm in benchmarks:
+        for cfg in flattened_cfgs:
+            new_cfg = copy.deepcopy(cfg)
+            new_cfg["CFG"]["BENCH"] = bm
+            all_cfgs.append(new_cfg)
+    return all_cfgs
 
 
 def run(cfgs, root_dir):
@@ -119,7 +119,6 @@ def get_values_from(filename, key):
             return [0]
         with open(filename) as f:
             for line in f.readlines():
-                # print(line)
                 j = json.loads(line)
                 
                 # major_gc_time = j["total_major_gc_time"]
@@ -142,6 +141,19 @@ def read_cfg(dir):
     # print(cfg)
     return cfg
 
+def merge_log_files(dir, pattern, output_file):
+    files = glob.glob(dir+pattern)
+    data = ""
+    for file in files:
+        with open(file) as f:
+            data += f.read()
+    complete_path = dir+output_file
+    with open(complete_path, "w") as f:
+        f.write(data)
+    print(complete_path)
+    return complete_path
+        
+
 # res = {yg:{x: [val], y: [val]}, classic:{x: [val], y: [val]}, ignore:{x: [val], y: [val]}]}
 def eval_jetstream(benchmark, root_dir, plt_config):
     dirs = get_dirs(root_dir)
@@ -151,8 +163,8 @@ def eval_jetstream(benchmark, root_dir, plt_config):
         if cfg['CFG']['BENCH'] != benchmark:
             continue
         balance_type = cfg['CFG']['BALANCER_CFG']['BALANCE_STRATEGY']
-        gc_file = glob.glob(dir+'/*.gc.log')[0]
-        mem_file = glob.glob(dir+'/*.memory.log')[0]
+        gc_file = merge_log_files(dir, '/*.gc.log', "/tmp_gc_file")
+        mem_file = merge_log_files(dir, '/*.memory.log', "/tmp_mem_file")
         x = plt_config.items[0].operation(gc_file, mem_file)
         y = plt_config.items[1].operation(gc_file, mem_file)
         print(balance_type + " "+ benchmark + " " + str(x) + " - "+str(y) + " dir: "+ dir)
@@ -171,9 +183,6 @@ def plot(values, root_dir, benchmark, plt_config):
     plt.xlabel(plt_config.x_axis)
     plt.ylabel(plt_config.y_axis)
     for (idx, key) in enumerate(values.keys()):
-        # size = len(values[key]["x"])
-        # plt.scatter([ x / size for x in values[key]["x"]], [ y / size for y in values[key]["y"]], label=key, linewidth=0.1, s=20, color=colors[key])
-        # print(values[key]["x"])
         plt.scatter(values[key]["x"], values[key]["y"], label=key, linewidth=0.1, s=20, color=colors[key])
     path = os.path.join(root_dir, benchmark+plt_config.filename)
     plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left")
@@ -295,16 +304,3 @@ for p in global_plots:
 #     eval_single_run(p)
 
 
-
-#running the old way - all benchmarks together
-
-
-
-
-
-
-
-
-
-
-# get_values_from("/home/pranav/v8-mb/MemoryBalancer/log/2023-03-09-20-08-00/62YG_BALANCER/231952_51771535825568.memory.log", "BenchmarkMemory")

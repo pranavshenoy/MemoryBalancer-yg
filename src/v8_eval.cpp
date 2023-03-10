@@ -89,6 +89,8 @@ std::vector<std::pair<size_t, std::string>> getScript(size_t iterations, std::st
   return getBenchmarkScript(iterations, name);
 }
 
+
+
 // void v8_experiment(v8::Platform* platform, const std::vector<char*>& args) {
 //   cxxopts::Options options("V8 Experiment", "run some experiment from jetstream");
 //   options.add_options()
@@ -123,6 +125,8 @@ void v8_experiment(v8::Platform* platform, const std::vector<char*>& args) {
     ("heap-size", "Heap size in bytes.", cxxopts::value<int>());
   options.add_options()
     ("log-path", "path of log", cxxopts::value<std::string>());
+  options.add_options()
+    ("benchmark", "benchmark", cxxopts::value<std::string>());
   auto result = options.parse(args.size(), args.data());
   assert(result.count("heap-size"));
   int heap_size = result["heap-size"].as<int>();

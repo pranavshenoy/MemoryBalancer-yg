@@ -144,16 +144,17 @@ def main(cfg, exp, legend=True):
                     j["type"] = "gc"
                     j["time"] = j["before_time"]
                     name = j["name"]
-                    #if name == "":
-                    #    name = j["guid"]
+                    if name == "":
+                       name = j["guid"]
                     jsons.append(j)
             with open(memory_log_str) as f:
                 for line in f.readlines():
                     j = json.loads(line)
                     j["type"] = "memory"
-                    name = j["name"]
-                    if name == "":
-                        name = j["guid"]
+                    # name = j["name"]
+                    # if name == "":
+                    #     name = j["guid"]
+                    name = j["guid"]
                     jsons.append(j)
             if len(jsons) != 0:
                 jsons.sort(key=lambda x:x["time"])
@@ -180,4 +181,6 @@ def main(cfg, exp, legend=True):
 if __name__ == "__main__":
     assert(len(sys.argv) == 2)
     main("main", Experiment([Run(sys.argv[1])]))
-    plt.show()
+    dir = sys.argv[1]
+    plt.savefig(dir+"/progress.png", bbox_inches='tight')
+    # plt.show()
