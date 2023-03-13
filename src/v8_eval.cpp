@@ -91,34 +91,6 @@ std::vector<std::pair<size_t, std::string>> getScript(size_t iterations, std::st
 
 
 
-// void v8_experiment(v8::Platform* platform, const std::vector<char*>& args) {
-//   cxxopts::Options options("V8 Experiment", "run some experiment from jetstream");
-//   options.add_options()
-//     ("heap-size", "Heap size in bytes.", cxxopts::value<int>());
-//   options.add_options()
-//     ("log-path", "path of log", cxxopts::value<std::string>());
-//   options.add_options()
-//     ("benchmark", "benchmark", cxxopts::value<std::string>());
-//   auto result = options.parse(args.size(), args.data());
-//   assert(result.count("heap-size"));
-//   int heap_size = result["heap-size"].as<int>();
-//   std::string benchmark = result["benchmark"].as<std::string>();
-//   assert(heap_size > 0);
-//   assert(result.count("log-path"));
-//   std::ofstream logger(result["log-path"].as<std::string>());
-
-//   std::vector<std::pair<size_t, std::string>> script = getScript(1500, benchmark);
-//   std::vector<std::future<void>> futures;
-//   Signal s;
-//   futures.push_back(std::async(std::launch::async, run_v8, platform, script, benchmark, heap_size, &s));
-//   s.signal();
-//   for (auto& future : futures) {
-//     future.get();
-//   }
-// }
-
-
-
 void v8_experiment(v8::Platform* platform, const std::vector<char*>& args) {
   cxxopts::Options options("V8 Experiment", "run some experiment from jetstream");
   options.add_options()
@@ -130,9 +102,29 @@ void v8_experiment(v8::Platform* platform, const std::vector<char*>& args) {
   auto result = options.parse(args.size(), args.data());
   assert(result.count("heap-size"));
   int heap_size = result["heap-size"].as<int>();
+  std::string benchmark = result["benchmark"].as<std::string>();
   assert(heap_size > 0);
   assert(result.count("log-path"));
   std::ofstream logger(result["log-path"].as<std::string>());
+
+  if(benchmark == "all") {
+    std::cout<<"Running All Benchmark\n";
+    v8_all_bm(platform, heap_size);
+    return;
+  }
+  std::cout<<"Running Benchmark: "<<benchmark<<std::endl;
+  std::vector<std::pair<size_t, std::string>> script = getScript(1500, benchmark);
+  std::vector<std::future<void>> futures;
+  Signal s;
+  futures.push_back(std::async(std::launch::async, run_v8, platform, script, benchmark, heap_size, &s));
+  s.signal();
+  for (auto& future : futures) {
+    future.get();
+  }
+}
+
+void v8_all_bm(v8::Platform* platform, int heap_size) {
+  
   std::string browserbench_path = "../WebKit/Websites/browserbench.org/";
   std::string jetstream1_path = browserbench_path + "JetStream1.1/";
   std::string jetstream2_path = browserbench_path + "JetStream2.0/";

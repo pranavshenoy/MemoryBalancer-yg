@@ -151,9 +151,10 @@ def main(cfg, exp, legend=True):
                 for line in f.readlines():
                     j = json.loads(line)
                     j["type"] = "memory"
-                    name = j["name"]
-                    if name == "":
-                        name = j["guid"]
+                    # name = j["name"]
+                    # if name == "":
+                    #     name = j["guid"]
+                    # name = j["guid"]
                     jsons.append(j)
             if len(jsons) != 0:
                 jsons.sort(key=lambda x:x["time"])

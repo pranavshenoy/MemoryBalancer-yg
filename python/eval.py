@@ -19,7 +19,7 @@ import collections
 
 assert len(sys.argv) > 1
 mode = sys.argv[1]
-assert mode in ["run", "all_plot", "single_run_analysis"]
+assert mode in ["all", "run", "global_plots", "single_plots", "anal_gc_plots"]
 
 def make_path(in_path):
     path = in_path.joinpath(time.strftime("%Y-%m-%d-%H-%M-%S"))
@@ -32,8 +32,8 @@ else:
     assert len(sys.argv) > 2
     root_dir = sys.argv[2]
     
-# benchmarks = ["pdfjs.js", "splay.js", "typescript.js", "box2d.js", "earley-boyer.js"]
-benchmarks = ["all"]
+benchmarks = ["all", "pdfjs.js", "splay.js", "typescript.js", "box2d.js", "earley-boyer.js"]
+
 
 # js_c_range = [3, 5]
 # js_c_range = [3, 5, 10, 20, 30]
@@ -87,9 +87,9 @@ def flatten_config(cfg):
 flatten_config(eval_jetstream)
 
 
-def add_more_benchmarks_to(config):
+def add_more_benchmarks_to(config, benchmark):
     all_cfgs = []
-    for bm in benchmarks:
+    for bm in benchmark:
         for cfg in flattened_cfgs:
             new_cfg = copy.deepcopy(cfg)
             new_cfg["CFG"]["BENCH"] = bm
@@ -240,8 +240,8 @@ def eval_single_run(config):
 
 
 
-def eval_and_plot(plt_config):
-    for bm in benchmarks:
+def eval_and_plot(plt_config, benchmark):
+    for bm in benchmark:
         result = eval_jetstream(bm, root_dir, plt_config)
         plot(result, root_dir, bm, plt_config)
 
@@ -253,7 +253,13 @@ def old_gen_size_of_obj(gc_file):
         res.append(cur_total - yg[idx])
     return res
 
-# yg_semispace_limit = ParamWrapper("yg_semispace_limit", "young gen", lambda gc_file: get_values_from(gc_file, "yg_semispace_limit"))
+def run_anal_gc():
+    dirs = get_dirs(root_dir)
+    for dir in dirs:
+        cmd = f'python3 python/anal_gc_log.py  {dir}'
+        subprocess.run(cmd, shell=True, check=True)
+
+yg_semispace_limit = ParamWrapper("yg_semispace_limit", "young gen", lambda gc_file: get_values_from(gc_file, "yg_semispace_limit"))
 # og_heap_limit = ParamWrapper("og_heap_limit", "old gen", lambda gc_file: get_values_from(gc_file, "og_heap_limit"))
 # yg_size_of_object = ParamWrapper("yg_size_of_object", "young gen", lambda gc_file: get_values_from(gc_file, "yg_size_of_object"))
 # og_size_of_object = ParamWrapper("og_size_of_object", "old gen", lambda gc_file: get_values_from(gc_file, "og_size_of_object"))
@@ -266,7 +272,7 @@ def old_gen_size_of_obj(gc_file):
 #single config plots
 
 # limit_plot = PlotWrapper("limit_plot.png", "Progress", "Heap Limit (B)", [yg_semispace_limit, og_heap_limit])
-# yg_limit_plot = PlotWrapper("yg_limit_plot.png", "Progress", "Heap Limit (B)", [ yg_semispace_limit])
+yg_limit_plot = PlotWrapper("yg_limit_plot.png", "Progress", "Heap Limit (B)", [ yg_semispace_limit])
 # og_limit_plot = PlotWrapper("og_limit_plot.png", "Progress", "Heap Limit (B)", [ og_heap_limit])
 # yg_size_of_obj_plot = PlotWrapper("yg_size_of_obj_plot.png", "Progress", "Size of objects (B)", [yg_size_of_object])
 # og_size_of_obj_plot = PlotWrapper("og_size_of_obj_plot.png", "Progress", "Size of objects (B)", [og_size_of_object])
@@ -290,17 +296,30 @@ total_og_gc_time_vs_og_soo = PlotWrapper("-og_only.png", "Size of Obj (MB)", "ti
 # total_gc_time_vs_soo = PlotWrapper("-total.png", "Size of Obj (bytes)", "time (ns)", [total_size_of_object, total_gc_time])
 
 
-if mode == "run":
-    cfgs = add_more_benchmarks_to(eval_jetstream)
+local_benchmark_copy = benchmarks
+if mode == "run" or mode == "all":
+    cfgs = add_more_benchmarks_to(eval_jetstream, local_benchmark_copy)
     run(cfgs, root_dir)
 
-# global_plots = [total_yg_gc_time_vs_yg_soo, total_og_gc_time_vs_og_soo, total_gc_time_vs_soo]
-global_plots = [total_og_gc_time_vs_og_soo]
-for p in global_plots:
-    eval_and_plot(p)
+if mode == "global_plots" or mode == "all":
+    # global_plots = [total_yg_gc_time_vs_yg_soo, total_og_gc_time_vs_og_soo, total_gc_time_vs_soo]
+    global_plots = [total_og_gc_time_vs_og_soo]
+    for p in global_plots:
+        eval_and_plot(p, local_benchmark_copy)
 
-# all_single_plots = [yg_limit_plot, og_limit_plot, yg_size_of_obj_plot, og_size_of_obj_plot, yg_gc_time_plot, og_gc_time_plot]
-# for p in all_single_plots:
-#     eval_single_run(p)
+if mode == "single_plots" or mode == "all":
+    # all_single_plots = [yg_limit_plot, og_limit_plot, yg_size_of_obj_plot, og_size_of_obj_plot, yg_gc_time_plot, og_gc_time_plot]
+    all_single_plots = [yg_limit_plot]
+    for p in all_single_plots:
+        eval_single_run(p)
+
+if mode == "anal_gc_plots" or mode == "all":
+    run_anal_gc()
+
+
+
+
+
+
 
 
