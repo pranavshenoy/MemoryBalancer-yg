@@ -157,7 +157,7 @@ def gen_eval(tex_name, m, *, anal_frac=None, show_baseline=True, reciprocal_regr
         megaplot.plot(m, m.keys(), tex_name, legend=False, show_baseline=show_baseline, reciprocal_regression=True, normalize_baseline=normalize_baseline, invert_graph=False)
         png_path = f"{tex_name}plot.png"
         plt.savefig(str(path.joinpath(png_path)), bbox_inches='tight')
-        plt.savefig(f"../membalancer-paper/img/{png_path}", bbox_inches='tight')
+        plt.savefig(f"{input_dir}/{png_path}", bbox_inches='tight')
         plt.clf()
         img(src=png_path)
         mp = megaplot.plot(m, m.keys(), tex_name, legend=False)
@@ -238,30 +238,30 @@ def gen_jetstream(directory):
     tex_table_baseline_dir = None
     tex_table_membalancer_dir = None
     JSCompareAt = -2e-8
-    for name in glob.glob(f'{directory}/**/score', recursive=True):
-        dirname = os.path.dirname(name)
-        with open(dirname + "/cfg") as f:
-            cfg = eval(f.read())
-        if cfg["CFG"]["BALANCER_CFG"]["BALANCE_STRATEGY"] == "ignore":
-            if not found_baseline:
-            	found_baseline = True
-            	tex_table_baseline_dir = dirname
-            	anal_gc_log.main(cfg, Experiment([Run(dirname + "/")]), legend=False)
-            	plt.xlim([0, 40])
-            	plt.ylim([0, 450])
-            	plt.savefig(f"../membalancer-paper/img/js_baseline_anal.png", bbox_inches='tight')
-            	plt.clf()
-        elif cfg["CFG"]["BALANCER_CFG"]["RESIZE_CFG"]["GC_RATE_D"] == JSCompareAt:
-            if not found_compare:
-                found_compare = True
-                global tex
-                tex += tex_def("CompareAt", tex_fmt(JSCompareAt*-1e9))
-                tex_table_membalancer_dir = dirname
-                anal_gc_log.main(cfg, Experiment([Run(dirname + "/")]), legend=False)
-                plt.xlim([0, 40])
-                plt.ylim([0, 450])
-                plt.savefig(f"../membalancer-paper/img/js_membalancer_anal.png", bbox_inches='tight')
-                plt.clf()
+    # for name in glob.glob(f'{directory}/**/score', recursive=True):
+    #     dirname = os.path.dirname(name)
+    #     with open(dirname + "/cfg") as f:
+    #         cfg = eval(f.read())
+    #     if cfg["CFG"]["BALANCER_CFG"]["BALANCE_STRATEGY"] == "ignore":
+    #         if not found_baseline:
+    #         	found_baseline = True
+    #         	tex_table_baseline_dir = dirname
+    #         	anal_gc_log.main(cfg, Experiment([Run(dirname + "/")]), legend=False)
+    #         	plt.xlim([0, 40])
+    #         	plt.ylim([0, 450])
+    #         	plt.savefig(f"../membalancer-paper/img/js_baseline_anal.png", bbox_inches='tight')
+    #         	plt.clf()
+    #     elif cfg["CFG"]["BALANCER_CFG"]["RESIZE_CFG"]["GC_RATE_D"] == JSCompareAt:
+    #         if not found_compare:
+    #             found_compare = True
+    #             global tex
+    #             tex += tex_def("CompareAt", tex_fmt(JSCompareAt*-1e9))
+    #             tex_table_membalancer_dir = dirname
+    #             anal_gc_log.main(cfg, Experiment([Run(dirname + "/")]), legend=False)
+    #             plt.xlim([0, 40])
+    #             plt.ylim([0, 450])
+    #             plt.savefig(f"../membalancer-paper/img/js_membalancer_anal.png", bbox_inches='tight')
+    #             plt.clf()
     # gen_tex_table.main(tex_table_membalancer_dir, tex_table_baseline_dir)
     # parse_gc_log.main([tex_table_membalancer_dir], [tex_table_baseline_dir], "JS")
     return gen_eval("JETSTREAM", m_exp)
@@ -301,29 +301,30 @@ def gen_browser(directory, i):
 
 with page(path=path.joinpath("index.html"), title='Main') as doc:
     d = list(Path(input_dir).iterdir())
+    # print(d)
+    li(a("jetstream", href=gen_jetstream(d)))
     
-    #assert len(d) == 1
-    #d = d[0]
-    for d_elem in d:
-        if d_elem.is_dir():
-            for dd in d_elem.iterdir():
-                if dd.is_dir():
-                    print(dd)
-                    with open(f"{dd}/cfg", "r") as f:
-                        cfg = eval(f.read())
-                        name = cfg["NAME"]
-                    if name == "jetstream":
-                        li(a("jetstream", href=gen_jetstream(dd)))
-                    elif name == "acdc":
-                        li(a("acdc", href=gen_acdc(dd)))
-                    elif name in ["browseri", "browserii", "browseriii"]:
-                        m = megaplot.anal_log(dd)
-                        m_exp = {benches: {cfg: [Experiment([x]) for x in aggregated_runs] for cfg, aggregated_runs in per_benches_m.items()} for benches, per_benches_m in m.items()}
-                        li(a(name, href=gen_eval(name.upper(), m_exp)))
-                        #for i in [1, 2, 3]:
-                        #    li(a(f"browser_{i}", href=gen_browser(dd, i)))
-                    else:
-                        raise
+    # for d_elem in d:
+    #     if d_elem.is_dir():
+    #         for dd in d_elem.iterdir():
+    #             if dd.is_dir():
+    #                 print(dd)
+    #                 with open(f"{dd}/cfg", "r") as f:
+    #                     cfg = eval(f.read())
+    #                     name = cfg["NAME"]
+    #                 if name == "jetstream":
+    #                     print(dd)
+    #                     li(a("jetstream", href=gen_jetstream(dd)))
+    #                 elif name == "acdc":
+    #                     li(a("acdc", href=gen_acdc(dd)))
+    #                 elif name in ["browseri", "browserii", "browseriii"]:
+    #                     m = megaplot.anal_log(dd)
+    #                     m_exp = {benches: {cfg: [Experiment([x]) for x in aggregated_runs] for cfg, aggregated_runs in per_benches_m.items()} for benches, per_benches_m in m.items()}
+    #                     li(a(name, href=gen_eval(name.upper(), m_exp)))
+    #                     #for i in [1, 2, 3]:
+    #                     #    li(a(f"browser_{i}", href=gen_browser(dd, i)))
+    #                 else:
+    #                     raise
     tex_file_name = "EVAL.tex.txt"
     with open(path.joinpath(tex_file_name), "w") as tex_file:
         tex_file.write(tex)

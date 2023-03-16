@@ -12,15 +12,21 @@ BASELINE = deep_freeze({'BALANCE_STRATEGY': 'ignore', 'RESIZE_CFG': {'RESIZE_STR
 
 def anal_log(path):
     data = []
-
-    for name in glob.glob(f'{path}/**/score', recursive=True):
-        dirname = os.path.dirname(name)
-        r = Run(dirname)
-        if r.ok():
-            data.append(r)
+    
+    all_paths = path
+    # print(all_paths)
+    # all_paths = glob.glob(f'{path}/**/score', recursive=True)
+    for name in all_paths:
+        # dirname = os.path.dirname(name)
+        if name.is_dir():
+            dirname = name
+            print(str(dirname))
+            r = Run(str(dirname))
+            if r.ok():
+                data.append(r)
 
     m = {}
-
+    
     for r in data:
         k = deep_freeze(r.cfg["CFG"]["BENCH"])
         if k not in m:

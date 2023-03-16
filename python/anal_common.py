@@ -73,6 +73,7 @@ class Run:
         # with open(dirname + "/score") as f:
             # self.score = json.load(f)
         with open(dirname + "/cfg") as f:
+            # print(dirname+"/cfg")
             self.cfg = eval(f.read())
 
     def ok(self):

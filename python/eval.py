@@ -98,6 +98,8 @@ def add_more_benchmarks_to(config, benchmark):
 
 
 def run(cfgs, root_dir):
+    # with open(root_dir.joinpath("cfg"), "w") as f:
+    #     f.write(str(cfgs))
     for (idx, cfg) in enumerate(cfgs):
         exp_path = root_dir.joinpath(str(idx)+cfg["CFG"]["BALANCER_CFG"]["BALANCE_STRATEGY"])
         exp_path.mkdir()
