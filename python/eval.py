@@ -287,7 +287,7 @@ yg_limit_plot = PlotWrapper("yg_limit_plot.png", "Progress", "Heap Limit (B)", [
 
 #global og_only
 total_og_size_of_object = ParamWrapper("BenchmarkMemory", "", lambda gc_file, memory_file: statistics.mean(get_values_from(memory_file, "BenchmarkMemory"))/1e6)
-total_og_gc_time = ParamWrapper("total_major_gc_time", "", lambda gc_file, memory_file: sum(get_values_from(gc_file, "total_major_gc_time"))/1e9)
+total_og_gc_time = ParamWrapper("total_major_gc_time", "", lambda gc_file, memory_file: get_values_from(gc_file, "total_major_gc_time")[-1]/1e9)
 total_og_gc_time_vs_og_soo = PlotWrapper("-og_only.png", "Size of Obj (MB)", "time (s)", [total_og_size_of_object, total_og_gc_time])
 
 #global total
@@ -296,12 +296,13 @@ total_og_gc_time_vs_og_soo = PlotWrapper("-og_only.png", "Size of Obj (MB)", "ti
 # total_gc_time_vs_soo = PlotWrapper("-total.png", "Size of Obj (bytes)", "time (ns)", [total_size_of_object, total_gc_time])
 
 
-local_benchmark_copy = benchmarks
+local_benchmark_copy = benchmarks[1:2]
 if mode == "run" or mode == "all":
     cfgs = add_more_benchmarks_to(eval_jetstream, local_benchmark_copy)
     run(cfgs, root_dir)
 
 if mode == "global_plots" or mode == "all":
+    print("Global Plots")
     # global_plots = [total_yg_gc_time_vs_yg_soo, total_og_gc_time_vs_og_soo, total_gc_time_vs_soo]
     global_plots = [total_og_gc_time_vs_og_soo]
     for p in global_plots:

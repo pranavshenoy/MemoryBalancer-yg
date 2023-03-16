@@ -114,9 +114,9 @@ class Experiment:
                         for line in f.readlines():
                             j = json.loads(line)
                             memorys.append(j["BenchmarkMemory"])
-                            name = j["name"]
-                            if name == "":
-                                name = j["guid"]
+                            # name = j["name"]
+                            # if name == "":
+                            #     name = j["guid"]
                         if len(memorys) != 0:
                             average_benchmark_memory = sum(memorys) / len(memorys)
                         else:
